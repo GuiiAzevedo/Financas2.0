@@ -99,43 +99,32 @@
 <div id="card-modal" class="modal-overlay">
     <div class="modal">
         <h2>Gerenciar Cartões</h2>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <input type="text" id="new-card-name" placeholder="Nome do novo cartão">
-            <button class="btn btn-sm" style="width: auto;" onclick="addCard()"><i class="fas fa-plus"></i></button>
+        <div class="form-group"><label>Nome do Cartão</label><input type="text" id="new-card-name" placeholder="Ex: Nubank"></div>
+        <div class="form-group">
+            <label>Dia Fechamento (1-31)</label>
+            <input type="number" id="new-card-closing" placeholder="Ex: 25" min="1" max="31">
+            <small style="color:var(--text-light); font-size:0.7rem">Compras após este dia vão para a próxima fatura.</small>
         </div>
+        <button class="btn btn-sm" style="width: auto; margin-bottom:15px;" onclick="addCard()"><i class="fas fa-plus"></i> Adicionar Cartão</button>
         <div id="card-manager-list" class="card-manager-list" style="max-height: 250px; overflow-y: auto;"></div>
         <button class="btn btn-outline" style="margin-top: 20px;" onclick="closeModal('card-modal')">Fechar</button>
     </div>
 </div>
 <div id="card-history-modal" class="modal-overlay">
     <div class="modal large">
-        <h2 id="history-modal-title">
-            <span>Extrato do Cartão</span>
-            <button class="action-btn" onclick="closeModal('card-history-modal')"><i class="fas fa-times"></i></button>
-        </h2>
+        <h2 id="history-modal-title"><span>Extrato do Cartão</span><button class="action-btn" onclick="closeModal('card-history-modal')"><i class="fas fa-times"></i></button></h2>
         <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px;" id="history-modal-subtitle"></div>
         <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-            <table>
-                <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
-                <tbody id="card-history-list"></tbody>
-            </table>
+            <table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead><tbody id="card-history-list"></tbody></table>
         </div>
-        <div style="margin-top: 15px; text-align: right; font-weight: bold; font-size: 1.1rem;">
-            Total: <span id="history-modal-total" style="color: var(--danger);">R$ 0,00</span>
-        </div>
+        <div style="margin-top: 15px; text-align: right; font-weight: bold; font-size: 1.1rem;">Total: <span id="history-modal-total" style="color: var(--danger);">R$ 0,00</span></div>
     </div>
 </div>
 <div class="container">
     <header>
-        <div class="app-branding">
-            <h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1>
-            <div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div>
-        </div>
+        <div class="app-branding"><h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1><div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div></div>
         <div class="header-controls">
-            <div class="status-indicator" id="status-indicator" title="Status de Conexão">
-                <div class="status-dot" id="status-dot"></div>
-                <span id="status-text">...</span>
-            </div>
+            <div class="status-indicator" id="status-indicator" title="Status de Conexão"><div class="status-dot" id="status-dot"></div><span id="status-text">...</span></div>
             <button class="btn-icon" onclick="toggleTheme()" title="Alternar Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
             <button class="btn-icon" onclick="exportToExcel()" title="Baixar Excel"><i class="fas fa-file-excel" style="color: #107c41;"></i></button>
             <button class="btn-icon" onclick="generatePDF()" title="Baixar PDF"><i class="fas fa-file-pdf" style="color: #b30b00;"></i></button>
@@ -153,7 +142,7 @@
             <div class="card expense"><h3>Saídas Pagas</h3><div class="value" id="display-expense">R$ 0,00</div></div>
             <div class="card balance" style="border-left: 5px solid var(--warning);">
                 <h3>Contas Pendentes</h3><div class="value" id="display-pending" style="color: var(--warning);">R$ 0,00</div>
-                <div id="pending-month-label" style="font-size:0.6rem; color:var(--text-light); margin-top:4px;">(Mês Selecionado)</div>
+                <div id="pending-month-label" style="font-size:0.6rem; color:var(--text-light); margin-top:4px;">(Fatura Selecionada)</div>
             </div>
             <div class="card balance"><h3>Saldo em Conta</h3><div class="value" id="display-balance">R$ 0,00</div></div>
         </section>
@@ -163,54 +152,24 @@
                 <form id="transaction-form">
                     <input type="hidden" id="edit-id">
                     <div class="form-group"><label>Descrição</label><input type="text" id="desc" placeholder="Ex: Mercado" required></div>
-                    <div class="form-group">
-                        <div style="display: flex; gap: 10px;">
-                            <div style="flex: 1;"><label>Valor (R$)</label><input type="number" id="amount" step="0.01" min="0.01" placeholder="0,00" required></div>
-                            <div style="width: 80px;"><label>Parcelas</label><input type="number" id="installments" min="1" max="60" value="1" title="Deixe 1 para à vista"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div style="display: flex; gap: 10px;">
-                            <div style="flex: 1;">
-                                <label>Tipo</label>
-                                <select id="type" onchange="handleTypeChange()">
-                                    <option value="income">Entrada (+)</option>
-                                    <option value="expense">Saída (-)</option>
-                                </select>
-                            </div>
-                            <div style="flex: 1;"><label>Categoria</label><select id="category"></select></div>
-                        </div>
-                    </div>
+                    <div class="form-group"><div style="display: flex; gap: 10px;"><div style="flex: 1;"><label>Valor (R$)</label><input type="number" id="amount" step="0.01" min="0.01" placeholder="0,00" required></div><div style="width: 80px;"><label>Parcelas</label><input type="number" id="installments" min="1" max="60" value="1" title="Deixe 1 para à vista"></div></div></div>
+                    <div class="form-group"><div style="display: flex; gap: 10px;"><div style="flex: 1;"><label>Tipo</label><select id="type" onchange="handleTypeChange()"><option value="income">Entrada (+)</option><option value="expense">Saída (-)</option></select></div><div style="flex: 1;"><label>Categoria</label><select id="category"></select></div></div></div>
                     <div class="form-group" id="card-group" style="display: none;"><label>Cartão de Crédito</label><select id="card-select"></select></div>
                     <div class="form-group"><label>Data</label><input type="date" id="date" required></div>
-                    <div class="form-group" id="status-group">
-                         <label>Status Inicial</label>
-                         <select id="status">
-                             <option value="paid">Já Pago (Confirmado)</option>
-                             <option value="pending">A Pagar (Pendente)</option>
-                         </select>
-                    </div>
+                    <div class="form-group" id="status-group"><label>Status Inicial</label><select id="status"><option value="paid">Já Pago (Confirmado)</option><option value="pending">A Pagar (Pendente)</option></select></div>
                     <button type="submit" class="btn" id="submit-btn"><i class="fas fa-save"></i> Salvar</button>
                     <button type="button" class="btn btn-cancel" id="cancel-btn" onclick="resetForm()">Cancelar</button>
                 </form>
             </section>
             <section class="section-box">
-                <div class="filter-bar">
-                    <h2 class="section-title" style="margin:0; border:none;">Resumo de Gastos</h2>
-                    <select id="month-filter" class="month-filter" onchange="updateUI()"></select>
-                </div>
+                <div class="filter-bar"><h2 class="section-title" style="margin:0; border:none;">Resumo de Gastos</h2><select id="month-filter" class="month-filter" onchange="updateUI()"></select></div>
                 <div style="height: 250px; position: relative; display: flex; justify-content: center;"><canvas id="financeChart"></canvas></div>
             </section>
         </div>
         <section class="section-box">
-            <h2 class="section-title">Histórico Resumido (Mês Atual)</h2>
+            <h2 class="section-title">Histórico Resumido (Mês Selecionado)</h2>
             <p style="font-size:0.8rem; color:var(--text-light); margin-bottom:10px;">Gastos no cartão são agrupados. Clique em "Ver Detalhes" para expandir.</p>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Status</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
-                    <tbody id="transactions-list"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Status</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead><tbody id="transactions-list"></tbody></table></div>
         </section>
     </div>
     <div id="tab-cartoes" style="display: none;">
@@ -220,12 +179,7 @@
                 <div class="form-group"><label>Cartão</label><select id="quick-card-select" required></select></div>
                 <div class="form-group"><label>O que foi comprado?</label><input type="text" id="quick-desc" required></div>
                 <div class="form-group"><label>Categoria</label><select id="quick-category"></select></div>
-                <div class="form-group">
-                    <div style="display:flex; gap:10px;">
-                        <div style="flex:1"><label>Valor Total</label><input type="number" id="quick-amount" step="0.01" required></div>
-                        <div style="width:80px"><label>Parcelas</label><input type="number" id="quick-installments" min="1" value="1"></div>
-                    </div>
-                </div>
+                <div class="form-group"><div style="display:flex; gap:10px;"><div style="flex:1"><label>Valor Total</label><input type="number" id="quick-amount" step="0.01" required></div><div style="width:80px"><label>Parcelas</label><input type="number" id="quick-installments" min="1" value="1"></div></div></div>
                 <div class="form-group"><label>Data da Compra</label><input type="date" id="quick-date" required></div>
                 <button type="submit" class="btn btn-outline"><i class="fas fa-check"></i> Lançar Agora</button>
             </form>
@@ -238,24 +192,15 @@
     </div>
     <div id="tab-contas" style="display: none;">
         <div class="section-box" style="border: 2px solid var(--warning);">
-            <h2 class="section-title" style="color: var(--warning);"><i class="fas fa-bell"></i> Contas Vencendo (Mês Selecionado)</h2>
+            <h2 class="section-title" style="color: var(--warning);"><i class="fas fa-bell"></i> Contas Vencendo (Fatura Selecionada)</h2>
             <p style="margin-bottom: 15px; color: var(--text-light);">As compras no cartão são agrupadas automaticamente como "Fatura do Mês".</p>
-            <div class="table-container">
-                <table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody id="pending-list"></tbody></table>
-            </div>
-            <div class="table-subheader"><i class="fas fa-check-circle"></i> Contas Pagas (Mês Selecionado)</div>
-            <div class="table-container">
-                <table><thead><tr><th>Data Pagamento</th><th>Descrição</th><th>Valor</th><th>Pago por</th></tr></thead><tbody id="paid-list"></tbody></table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody id="pending-list"></tbody></table></div>
+            <div class="table-subheader"><i class="fas fa-check-circle"></i> Contas Pagas (Fatura Selecionada)</div>
+            <div class="table-container"><table><thead><tr><th>Data Pagamento</th><th>Descrição</th><th>Valor</th><th>Pago por</th></tr></thead><tbody id="paid-list"></tbody></table></div>
         </div>
     </div>
     <div id="tab-auditoria" style="display: none;">
-        <div class="section-box">
-            <h2 class="section-title"><i class="fas fa-history"></i> Log de Auditoria Completo</h2>
-            <div class="table-container">
-                <table><thead><tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Item</th><th>Valor</th></tr></thead><tbody id="audit-list"></tbody></table>
-            </div>
-        </div>
+        <div class="section-box"><h2 class="section-title"><i class="fas fa-history"></i> Log de Auditoria Completo</h2><div class="table-container"><table><thead><tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Item</th><th>Valor</th></tr></thead><tbody id="audit-list"></tbody></table></div></div>
     </div>
 </div>
 <div id="toast" class="toast"><i id="toast-icon" class="fas"></i><span id="toast-msg">Mensagem</span></div>
@@ -270,6 +215,7 @@
     let db, transactions = [], cards = [], chartInstance = null, currentUser = "", isFirebaseActive = false;
     const cardBrands = { 'Nubank': { icon: 'fa-robot', color: '#8a05be' }, 'Inter': { icon: 'fa-university', color: '#ff7c00' }, 'Caixa': { icon: 'fa-building-columns', color: '#004a8d' }, 'Visa': { icon: 'fa-credit-card', color: '#1a1f71' }, 'Master': { icon: 'fa-credit-card', color: '#eb001b' }, 'Elo': { icon: 'fa-globe', color: '#000000' }, 'Hipercard': { icon: 'fa-layer-group', color: '#b22b2b' }, 'default': { icon: 'fa-credit-card', color: '#6b7280' } };
     const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
+    
     document.addEventListener('DOMContentLoaded', async () => {
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
         updateThemeIcon();
@@ -289,19 +235,25 @@
             isFirebaseActive = true;
             updateStatus('online');
             listenForData();
-        } catch (e) {
-            console.error("Firebase Error", e);
-            fallbackToOfflineOnly();
-        }
+        } catch (e) { console.error("Firebase Error", e); fallbackToOfflineOnly(); }
         document.getElementById('transaction-form').addEventListener('submit', handleMainFormSubmit);
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
         setupNotifications();
     });
+
     function loadLocalData() {
         const t = localStorage.getItem('local_transactions');
         const c = localStorage.getItem('mock_cards');
         if (t) transactions = JSON.parse(t);
-        if (c) cards = JSON.parse(c); else cards = ['Nubank', 'Inter', 'Visa', 'Master'];
+        // MIGRATION: Converter array de strings antigo para array de objetos
+        if (c) {
+            const parsedCards = JSON.parse(c);
+            if (parsedCards.length > 0 && typeof parsedCards[0] === 'string') {
+                cards = parsedCards.map(name => ({ name: name, closingDay: 25 }));
+            } else {
+                cards = parsedCards;
+            }
+        } else { cards = [{ name: 'Nubank', closingDay: 25 }, { name: 'Inter', closingDay: 10 }, { name: 'Visa', closingDay: 25 }]; }
         updateCardSelect();
         updateUI();
     }
@@ -334,7 +286,12 @@
         }, err => { if(err.code === 'permission-denied') fallbackToOfflineOnly(); });
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
-                cards = doc.data().cards;
+                let loadedCards = doc.data().cards;
+                // Checagem de tipo para compatibilidade
+                if(loadedCards.length > 0 && typeof loadedCards[0] === 'string') {
+                    loadedCards = loadedCards.map(n => ({name: n, closingDay: 25}));
+                }
+                cards = loadedCards;
                 localStorage.setItem('mock_cards', JSON.stringify(cards));
                 updateCardSelect(); updateUI();
             }
@@ -402,14 +359,36 @@
         if (installmentCount > 1) { createInstallments(baseData, installmentCount); }
         else { submitSingleTransaction(baseData, false); document.getElementById('quick-card-form').reset(); document.getElementById('quick-date').valueAsDate = new Date(); }
     }
-    // Função Atualizada com Lógica de Excluir Parcela ou Série
+    
+    // NOVA FUNÇÃO: Calcular Mês da Fatura (Ciclo)
+    function getBillingCycle(dateStr, closingDay) {
+        if (!dateStr) return 'unknown';
+        const d = new Date(dateStr + 'T12:00:00'); // Fix timezone issue
+        if (d.getDate() > closingDay) {
+            d.setMonth(d.getMonth() + 1);
+        }
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    }
+
     function openCardHistory(cardName) {
         const filterVal = document.getElementById('month-filter').value;
-        const cardTransactions = transactions.filter(t => { const matchCard = t.card === cardName; const matchDate = filterVal === 'all' || (t.date && t.date.startsWith(filterVal)); return matchCard && matchDate; }).sort((a,b) => new Date(b.date) - new Date(a.date));
+        const cardConfig = cards.find(c => c.name === cardName);
+        const closing = cardConfig ? cardConfig.closingDay : 25;
+        
+        const cardTransactions = transactions.filter(t => {
+            if (t.card !== cardName) return false;
+            // Filtro por Ciclo de Fatura
+            if (filterVal !== 'all') {
+                const cycle = getBillingCycle(t.date, closing);
+                return cycle === filterVal;
+            }
+            return true;
+        }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
         const list = document.getElementById('card-history-list');
         list.innerHTML = "";
         let total = 0;
-        if(cardTransactions.length === 0) { list.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Sem movimentos.</td></tr>"; }
+        if(cardTransactions.length === 0) { list.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Sem movimentos neste ciclo.</td></tr>"; }
         else {
             cardTransactions.forEach(t => {
                 total += t.amount;
@@ -418,53 +397,29 @@
             });
         }
         document.getElementById('history-modal-title').innerHTML = `<span>Extrato: ${cardName}</span> <button class="action-btn" onclick="closeModal('card-history-modal')"><i class="fas fa-times"></i></button>`;
-        document.getElementById('history-modal-subtitle').innerText = `Referência: ${filterVal === 'all' ? 'Todos os tempos' : filterVal}`;
+        document.getElementById('history-modal-subtitle').innerText = `Referência: Fatura de ${filterVal === 'all' ? 'Todos os tempos' : filterVal}`;
         document.getElementById('history-modal-total').innerText = formatCurrency(total);
         document.getElementById('card-history-modal').classList.add('open');
     }
     
-    // NOVA FUNÇÃO: Excluir Parcela ou Série
     function deleteOrDeleteSeries(id, cardName, description) {
-        // Verifica se é uma parcela pelo padrão (x/y)
         const isInstallment = description.match(/(.*)\s\(\d+\/\d+\)/);
-        
         if (isInstallment) {
             const baseDesc = isInstallment[1].trim();
-            // 1. Pergunta se quer apagar apenas esta
-            if (confirm(`APAGAR APENAS esta parcela?\n\n${description}\n\n(Clique em Cancelar para ver a opção de apagar a SÉRIE INTEIRA)`)) {
-                deleteTransaction(id);
-                return;
-            }
-            // 2. Se clicou em cancelar, pergunta se quer apagar a série
-            if (confirm(`APAGAR TODAS as parcelas de:\n${baseDesc}\n\nIsso irá excluir ${baseDesc} (1/x), (2/x), etc.`)) {
-                // Encontrar todas as transações que começam com o nome base
+            if (confirm(`APAGAR APENAS esta parcela?\n\n${description}\n\n(Clique em Cancelar para ver a opção de apagar a SÉRIE INTEIRA)`)) { deleteTransaction(id); return; }
+            if (confirm(`APAGAR TODAS as parcelas de:\n${baseDesc}`)) {
                 const seriesItems = transactions.filter(t => t.description.startsWith(baseDesc));
-                if(seriesItems.length === 0) {
-                    showToast("Nenhum item encontrado para excluir.", "error");
-                    return;
-                }
-                
+                if(seriesItems.length === 0) { showToast("Nenhum item encontrado.", "error"); return; }
                 if (isFirebaseActive) {
                     const batch = db.batch();
                     seriesItems.forEach(t => batch.delete(db.collection('transactions').doc(t.id)));
-                    batch.commit().then(() => {
-                        showToast(`Série completa excluída (${seriesItems.length} itens)`, "success");
-                        openCardHistory(cardName); // Atualiza modal
-                    });
+                    batch.commit().then(() => { showToast(`Série completa excluída`, "success"); openCardHistory(cardName); });
                 } else {
                     transactions = transactions.filter(t => !t.description.startsWith(baseDesc));
-                    localStorage.setItem('local_transactions', JSON.stringify(transactions));
-                    updateUI();
-                    showToast(`Série completa excluída (${seriesItems.length} itens)`, "success");
-                    openCardHistory(cardName);
+                    localStorage.setItem('local_transactions', JSON.stringify(transactions)); updateUI(); showToast(`Série completa excluída`, "success"); openCardHistory(cardName);
                 }
             }
-        } else {
-            // Não é parcela, apaga normal
-            if(confirm(`Excluir "${description}"?`)) {
-                deleteTransaction(id);
-            }
-        }
+        } else { if(confirm(`Excluir "${description}"?`)) { deleteTransaction(id); } }
     }
 
     function markAsPaid(id) {
@@ -549,6 +504,7 @@
     function getFilteredTransactions() {
         const filterVal = document.getElementById('month-filter').value;
         if (filterVal === 'all') return transactions;
+        // Filtro padrão baseado em data da compra (para visão geral)
         return transactions.filter(t => t.date && t.date.startsWith(filterVal));
     }
     function updateUI() {
@@ -559,13 +515,35 @@
         document.getElementById('display-expense').innerText = formatCurrency(Math.abs(expensePaid));
         const realBalance = income + expensePaid;
         document.getElementById('display-balance').innerText = formatCurrency(realBalance);
-        const pendingThisMonth = transactions.filter(t => { const isPending = t.type === 'expense' && t.status === 'pending'; const matchDate = filtered.includes(t); return isPending && matchDate; });
-        const pendingTotalMonth = pendingThisMonth.reduce((acc, t) => acc + t.amount, 0);
+        
+        // Lógica de Pendentes baseada em Ciclo de Fatura
+        const filterVal = document.getElementById('month-filter').value;
+        let pendingTotalMonth = 0;
+        
+        transactions.forEach(t => {
+            if (t.type === 'expense' && t.status === 'pending') {
+                let belongsToFilter = false;
+                if (filterVal === 'all') belongsToFilter = true;
+                else {
+                    if (t.card) {
+                        const cardConfig = cards.find(c => c.name === t.card);
+                        const closing = cardConfig ? cardConfig.closingDay : 25;
+                        const cycle = getBillingCycle(t.date, closing);
+                        if (cycle === filterVal) belongsToFilter = true;
+                    } else {
+                        // Sem cartão: usa data normal
+                        if (t.date && t.date.startsWith(filterVal)) belongsToFilter = true;
+                    }
+                }
+                if (belongsToFilter) pendingTotalMonth += t.amount;
+            }
+        });
         document.getElementById('display-pending').innerText = formatCurrency(Math.abs(pendingTotalMonth));
+
         renderTableGrouped(filtered, 'transactions-list');
-        renderPendingList(pendingThisMonth);
-        renderPaidList(filtered);
-        updateCardsView(filtered);
+        renderPendingList(); // Passa transações completas e filtra internamente
+        renderPaidList(filtered); // Pagos usam data normal
+        updateCardsView();
         updateChart(filtered);
         renderAuditLog();
     }
@@ -584,23 +562,43 @@
         }
         otherItems.sort((a, b) => new Date(b.date) - new Date(a.date));
         otherItems.forEach(t => {
-            const val = t.amount;
-            const isPaid = t.status === 'paid';
-            const isIncome = val > 0;
-            const rowClass = (!isPaid && !isIncome) ? 'pending-row' : (isPaid ? 'paid-row' : '');
-            const statusBadge = isIncome ? '<span class="badge badge-income">Receita</span>' : (isPaid ? '<span class="badge badge-paid">Pago</span>' : '<span class="badge badge-expense">Pendente</span>');
+            const val = t.amount; const isPaid = t.status === 'paid'; const isIncome = val > 0; const rowClass = (!isPaid && !isIncome) ? 'pending-row' : (isPaid ? 'paid-row' : ''); const statusBadge = isIncome ? '<span class="badge badge-income">Receita</span>' : (isPaid ? '<span class="badge badge-paid">Pago</span>' : '<span class="badge badge-expense">Pendente</span>');
             list.innerHTML += `<tr class="${rowClass}"><td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td><div style="font-weight:500;">${t.description}</div><div style="font-size:0.75rem; color:var(--text-light);">por: ${t.createdBy || '?'}</div></td><td>${t.category}</td><td>${statusBadge}</td><td class="amount-val" style="font-weight:700; color: ${isIncome?'var(--success)':'var(--danger)'}">${formatCurrency(val)}</td><td style="text-align:center;">${!isIncome && !isPaid ? `<button class="btn-pay" onclick="markAsPaid('${t.id}')"><i class="fas fa-check"></i></button>` : ''}<button class="action-btn" onclick="editTransaction('${t.id}')"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteTransaction('${t.id}')"><i class="fas fa-trash"></i></button></td></tr>`;
         });
     }
-    function renderPendingList(data) {
+    
+    // Atualizado para filtrar por Ciclo
+    function renderPendingList() {
         const list = document.getElementById('pending-list');
         list.innerHTML = "";
+        const filterVal = document.getElementById('month-filter').value;
+        
         const cardGroups = {};
         const singles = [];
-        data.forEach(t => {
-            if (t.card) { if(!cardGroups[t.card]) cardGroups[t.card] = { items: [], total: 0, minDate: t.date }; cardGroups[t.card].items.push(t); cardGroups[t.card].total += t.amount; if(new Date(t.date) < new Date(cardGroups[t.card].minDate)) cardGroups[t.card].minDate = t.date; }
-            else { singles.push(t); }
+        
+        transactions.forEach(t => {
+            if (t.status !== 'pending' || t.type !== 'expense') return;
+            
+            let belongsToFilter = false;
+            if (t.card) {
+                const cardConfig = cards.find(c => c.name === t.card);
+                const closing = cardConfig ? cardConfig.closingDay : 25;
+                const cycle = getBillingCycle(t.date, closing);
+                if (cycle === filterVal) belongsToFilter = true;
+            } else {
+                if (t.date && t.date.startsWith(filterVal)) belongsToFilter = true;
+            }
+
+            if (!belongsToFilter) return;
+
+            if (t.card) {
+                if(!cardGroups[t.card]) cardGroups[t.card] = { items: [], total: 0, minDate: t.date };
+                cardGroups[t.card].items.push(t);
+                cardGroups[t.card].total += t.amount;
+                if(new Date(t.date) < new Date(cardGroups[t.card].minDate)) cardGroups[t.card].minDate = t.date;
+            } else { singles.push(t); }
         });
+
         Object.keys(cardGroups).forEach(cardName => {
             const group = cardGroups[cardName];
             const style = getCardStyle(cardName);
@@ -608,18 +606,16 @@
         });
         singles.sort((a, b) => new Date(a.date) - new Date(b.date));
         singles.forEach(t => {
-            const isLate = new Date(t.date) < new Date();
-            const dateColor = isLate ? 'var(--danger)' : 'var(--text-main)';
-            const fontWeight = isLate ? 'bold' : 'normal';
+            const isLate = new Date(t.date) < new Date(); const dateColor = isLate ? 'var(--danger)' : 'var(--text-main)'; const fontWeight = isLate ? 'bold' : 'normal';
             list.innerHTML += `<tr class="pending-row"><td style="color:${dateColor}; font-weight:${fontWeight}">${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${t.description}</td><td style="font-weight:600;">${formatCurrency(t.amount)}</td><td><button class="btn-pay" style="width:100%; justify-content:center;" onclick="markAsPaid('${t.id}')"><i class="fas fa-check"></i> Pagar</button></td></tr>`;
         });
-        if (Object.keys(cardGroups).length === 0 && singles.length === 0) { list.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">Tudo em dia! Nenhuma conta pendente neste mês.</td></tr>`; }
+        if (Object.keys(cardGroups).length === 0 && singles.length === 0) { list.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">Tudo em dia! Nenhuma conta pendente nesta fatura.</td></tr>`; }
     }
     function renderPaidList(filteredData) {
         const list = document.getElementById('paid-list');
         list.innerHTML = "";
         const paidItems = filteredData.filter(t => t.status === 'paid' && t.amount < 0).sort((a,b) => new Date(b.date) - new Date(a.date));
-        if(paidItems.length === 0) { list.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-light); font-size:0.8rem">Nenhuma conta paga neste período.</td></tr>`; return; }
+        if(paidItems.length === 0) { list.innerHTML = `<tr><td colspan='4' style='text-align:center; padding:15px; color:var(--text-light); font-size:0.8rem">Nenhuma conta paga neste período.</td></tr>`; return; }
         paidItems.forEach(t => {
             const payer = t.history && t.history.length > 0 ? t.history[t.history.length-1].user : '-';
             const style = t.card ? getCardStyle(t.card) : null;
@@ -628,30 +624,44 @@
         });
     }
     function renderAuditLog() {
-        const list = document.getElementById('audit-list');
-        list.innerHTML = "";
-        let allLogs = [];
+        const list = document.getElementById('audit-list'); list.innerHTML = ""; let allLogs = [];
         transactions.forEach(t => { if (t.history && Array.isArray(t.history)) { t.history.forEach(log => { allLogs.push({ date: log.date, user: log.user, action: log.action, desc: t.description, amount: t.amount }); }); } });
         allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
         if(allLogs.length === 0) { list.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:20px;'>Nenhum registro.</td></tr>"; return; }
         allLogs.forEach(log => {
-            const dateObj = new Date(log.date);
-            const formattedDate = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            const dateObj = new Date(log.date); const formattedDate = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
             const actionColor = log.action === 'criado' ? 'var(--success)' : (log.action === 'editado' ? 'var(--warning)' : (log.action === 'pago' ? 'var(--primary)' : 'var(--danger)'));
             list.innerHTML += `<tr><td>${formattedDate}</td><td><strong>${log.user || 'Sistema'}</strong></td><td style="color:${actionColor}; font-weight:bold; text-transform:uppercase;">${log.action}</td><td>${log.desc}</td><td style="color: ${log.amount > 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(log.amount)}</td></tr>`;
         });
     }
-    function updateCardsView(data) {
+    
+    // Atualizado para filtrar por Ciclo
+    function updateCardsView() {
         const container = document.getElementById('cards-summary-container');
         container.innerHTML = "";
+        const filterVal = document.getElementById('month-filter').value;
         const cardTotals = {};
-        data.forEach(t => { if (t.card && t.amount < 0) { cardTotals[t.card] = (cardTotals[t.card] || 0) + t.amount; } });
-        if (Object.keys(cardTotals).length === 0) { container.innerHTML = "<p style='text-align:center; color:var(--text-light);'>Sem gastos neste mês.</p>"; return; }
+        
+        transactions.forEach(t => {
+            if (t.card && t.amount < 0) {
+                // Lógica de Ciclo
+                const cardConfig = cards.find(c => c.name === t.card);
+                const closing = cardConfig ? cardConfig.closingDay : 25;
+                const cycle = getBillingCycle(t.date, closing);
+                
+                if (cycle === filterVal) {
+                    cardTotals[t.card] = (cardTotals[t.card] || 0) + t.amount;
+                }
+            }
+        });
+
+        if (Object.keys(cardTotals).length === 0) { container.innerHTML = "<p style='text-align:center; color:var(--text-light);'>Sem gastos nesta fatura.</p>"; return; }
         for (const [card, total] of Object.entries(cardTotals)) {
             const style = getCardStyle(card);
-            container.innerHTML += `<div class="card-item" style="background-color: ${style.color};" onclick="openCardHistory('${card}')"><div style="display:flex; align-items:center;"><i class="fas ${style.icon} card-item-icon"></i><div><strong style="font-size:1.1rem;">${card}</strong><div style="font-size:0.8rem; opacity:0.9;">Fatura do Mês</div></div></div><div style="font-weight:700; font-size:1.2rem;">${formatCurrency(total)}</div></div>`;
+            container.innerHTML += `<div class="card-item" style="background-color: ${style.color};" onclick="openCardHistory('${card}')"><div style="display:flex; align-items:center;"><i class="fas ${style.icon} card-item-icon"></i><div><strong style="font-size:1.1rem;">${card}</strong><div style="font-size:0.8rem; opacity:0.9;">Fatura da Seleção</div></div></div><div style="font-weight:700; font-size:1.2rem;">${formatCurrency(total)}</div></div>`;
         }
     }
+
     function updateChart(data) {
         const ctx = document.getElementById('financeChart').getContext('2d');
         const expenses = data.filter(t => t.type === 'expense' || t.amount < 0);
@@ -667,15 +677,11 @@
     }
     function formatCurrency(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     function handleTypeChange() {
-        const type = document.getElementById('type').value;
-        document.getElementById('card-group').style.display = type === 'expense' ? 'block' : 'none';
-        const statusSel = document.getElementById('status');
-        if (type === 'expense') { if(statusSel.value === 'paid') statusSel.value = 'pending'; } else { statusSel.value = 'paid'; }
-        updateCategories();
+        const type = document.getElementById('type').value; document.getElementById('card-group').style.display = type === 'expense' ? 'block' : 'none';
+        const statusSel = document.getElementById('status'); if (type === 'expense') { if(statusSel.value === 'paid') statusSel.value = 'pending'; } else { statusSel.value = 'paid'; } updateCategories();
     }
     function updateCategories() {
-        const type = document.getElementById('type').value;
-        const select = document.getElementById('category');
+        const type = document.getElementById('type').value; const select = document.getElementById('category');
         select.innerHTML = categories[type].map(c => `<option value="${c}">${c}</option>`).join('');
     }
     function switchTab(tab) {
@@ -690,72 +696,50 @@
         const body = document.body;
         if (body.getAttribute('data-theme') === 'dark') { body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
         else { body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
-        updateThemeIcon();
-        updateChart(getFilteredTransactions());
+        updateThemeIcon(); updateChart(getFilteredTransactions());
     }
-    function updateThemeIcon() {
-        const icon = document.getElementById('theme-icon');
-        if (document.body.getAttribute('data-theme') === 'dark') { icon.className = 'fas fa-sun'; } else { icon.className = 'fas fa-moon'; }
-    }
+    function updateThemeIcon() { const icon = document.getElementById('theme-icon'); if (document.body.getAttribute('data-theme') === 'dark') { icon.className = 'fas fa-sun'; } else { icon.className = 'fas fa-moon'; } }
     function updateStatus(status) {
-        const dot = document.getElementById('status-dot');
-        const text = document.getElementById('status-text');
-        dot.className = 'status-dot';
+        const dot = document.getElementById('status-dot'); const text = document.getElementById('status-text'); dot.className = 'status-dot';
         if (status === 'online') { dot.classList.add('online'); text.innerText = "Nuvem"; }
         else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Offline"; }
     }
-    function setUser() {
-        const input = document.getElementById('username-input');
-        if (input.value.trim()) {
-            currentUser = input.value.trim();
-            localStorage.setItem('currentUser', currentUser);
-            updateUserDisplay();
-            closeModal('user-modal');
-        }
-    }
+    function setUser() { const input = document.getElementById('username-input'); if (input.value.trim()) { currentUser = input.value.trim(); localStorage.setItem('currentUser', currentUser); updateUserDisplay(); closeModal('user-modal'); } }
     function changeUser() { document.getElementById('username-input').value = ""; document.getElementById('user-modal').classList.add('open'); }
     function updateUserDisplay() { document.getElementById('user-display').innerHTML = `<i class="fas fa-user"></i> ${currentUser}`; }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function showToast(msg, type = 'success') {
-        const toast = document.getElementById('toast');
-        const icon = document.getElementById('toast-icon');
-        const text = document.getElementById('toast-msg');
-        toast.className = `toast ${type} show`;
-        text.innerText = msg;
+        const toast = document.getElementById('toast'); const icon = document.getElementById('toast-icon'); const text = document.getElementById('toast-msg');
+        toast.className = `toast ${type} show`; text.innerText = msg;
         icon.className = type === 'success' ? 'fas fa-check-circle' : (type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
     function updateCardSelect() {
-        const mainSelect = document.getElementById('card-select');
-        const quickSelect = document.getElementById('quick-card-select');
-        const optionsHTML = cards.map(c => `<option value="${c}">${c}</option>`).join('');
+        const mainSelect = document.getElementById('card-select'); const quickSelect = document.getElementById('quick-card-select');
+        const optionsHTML = cards.map(c => `<option value="${c.name}">${c.name} (Fechamento: ${c.closingDay})</option>`).join('');
         mainSelect.innerHTML = '<option value="">À vista / Débito / Pix</option>' + optionsHTML;
         quickSelect.innerHTML = '<option value="">Selecione...</option>' + optionsHTML;
     }
     function openCardManager() {
-        const list = document.getElementById('card-manager-list');
-        list.innerHTML = "";
+        const list = document.getElementById('card-manager-list'); list.innerHTML = "";
         cards.forEach((card, index) => {
-            const style = getCardStyle(card);
-            list.innerHTML += `<div style="background:var(--bg-color); padding:10px; margin-bottom:5px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;"><span><i class="fas ${style.icon}" style="color:${style.color}; margin-right:5px;"></i> ${card}</span><button class="action-btn delete" onclick="deleteCard(${index})"><i class="fas fa-trash"></i></button></div>`;
+            const style = getCardStyle(card.name);
+            list.innerHTML += `<div style="background:var(--bg-color); padding:10px; margin-bottom:5px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;"><span><i class="fas ${style.icon}" style="color:${style.color}; margin-right:5px;"></i> ${card.name} <small style="color:var(--text-light);">(Fech: ${card.closingDay})</small></span><button class="action-btn delete" onclick="deleteCard(${index})"><i class="fas fa-trash"></i></button></div>`;
         });
         document.getElementById('card-modal').classList.add('open');
     }
     function addCard() {
         const name = document.getElementById('new-card-name').value.trim();
-        if (!name || cards.includes(name)) return;
-        cards.push(name);
+        const closing = parseInt(document.getElementById('new-card-closing').value) || 25;
+        if (!name || cards.some(c => c.name === name)) return;
+        cards.push({ name: name, closingDay: closing });
         saveCards();
-        document.getElementById('new-card-name').value = "";
+        document.getElementById('new-card-name').value = ""; document.getElementById('new-card-closing').value = "";
         openCardManager();
         showToast("Cartão adicionado");
     }
     function deleteCard(index) {
-        if(confirm("Excluir este cartão?")) {
-            cards.splice(index, 1);
-            saveCards();
-            openCardManager();
-        }
+        if(confirm("Excluir este cartão?")) { cards.splice(index, 1); saveCards(); openCardManager(); }
     }
     function saveCards() {
         if(isFirebaseActive) db.collection('settings').doc('config').set({ cards: cards });
@@ -764,9 +748,7 @@
         updateUI();
     }
     function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("Relatório Financeiro", 14, 20);
+        const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("Relatório Financeiro", 14, 20);
         doc.setFontSize(10); doc.text(`Gerado por ${currentUser} em ${new Date().toLocaleDateString()}`, 14, 26);
         const tableData = transactions.map(t => [new Date(t.date).toLocaleDateString('pt-BR'), t.description.substring(0, 25), t.status === 'paid' ? 'Pago' : 'Pendente', formatCurrency(t.amount)]);
         doc.autoTable({ startY: 35, head: [['Data', 'Descrição', 'Status', 'Valor']], body: tableData, theme: 'grid', headStyles: { fillColor: [79, 70, 229] } });
