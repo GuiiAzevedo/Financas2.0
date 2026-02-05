@@ -6,6 +6,7 @@
     <title>Finanças do Casal Ultimate - Pro</title>
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="theme-color" content="#4f46e5">
+    <!-- Estilos Locais (Carregam rápido e offline) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -44,7 +45,7 @@
         input, select { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 0.9rem; outline: none; }
         input:focus, select:focus { border-color: var(--primary); }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
-        .btn:hover { background: var(--primary-hover); }
+        .btn:hover { filter: brightness(1.1); }
         .btn:active { transform: scale(0.98); }
         .btn-cancel { background: var(--bg-color); color: var(--danger); border: 1px solid var(--border-color); margin-top: 10px; display: none; }
         .btn-sm { width: auto; padding: 6px 12px; font-size: 0.8rem; }
@@ -85,6 +86,9 @@
         .toast.show { transform: translateY(0); }
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
+        /* Loading Spinner */
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 20px; height: 20px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -124,7 +128,11 @@
     <header>
         <div class="app-branding"><h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1><div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div></div>
         <div class="header-controls">
-            <div class="status-indicator" id="status-indicator" title="Status de Conexão"><div class="status-dot" id="status-dot"></div><span id="status-text">...</span></div>
+            <div class="status-indicator" id="status-indicator" title="Status de Conexão">
+                <div class="spinner" id="sync-spinner"></div>
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">...</span>
+            </div>
             <button class="btn-icon" onclick="toggleTheme()" title="Alternar Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
             <button class="btn-icon" onclick="exportToExcel()" title="Baixar Excel"><i class="fas fa-file-excel" style="color: #107c41;"></i></button>
             <button class="btn-icon" onclick="generatePDF()" title="Baixar PDF"><i class="fas fa-file-pdf" style="color: #b30b00;"></i></button>
@@ -205,7 +213,7 @@
 </div>
 <div id="toast" class="toast"><i id="toast-icon" class="fas"></i><span id="toast-msg">Mensagem</span></div>
 
-<!-- Scripts Externos com DEFER para não travar a abertura se não houver internet -->
+<!-- Scripts com DEFER para não travar se não carregarem -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" defer></script>
@@ -219,15 +227,15 @@
     const cardBrands = { 'Nubank': { icon: 'fa-robot', color: '#8a05be' }, 'Inter': { icon: 'fa-university', color: '#ff7c00' }, 'Caixa': { icon: 'fa-building-columns', color: '#004a8d' }, 'Visa': { icon: 'fa-credit-card', color: '#1a1f71' }, 'Master': { icon: 'fa-credit-card', color: '#eb001b' }, 'Elo': { icon: 'fa-globe', color: '#000000' }, 'Hipercard': { icon: 'fa-layer-group', color: '#b22b2b' }, 'default': { icon: 'fa-credit-card', color: '#6b7280' } };
     const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
     
-    document.addEventListener('DOMContentLoaded', async () => {
-        // 1. CONFIGURAÇÃO INICIAL (RODA MESMO SEM INTERNET)
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. CARREGAMENTO IMEDIATO (OFFLINE-FIRST)
+        // Carrega dados locais para garantir que o app abra na hora
+        loadLocalData();
+        
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
         updateThemeIcon();
         currentUser = localStorage.getItem('currentUser') || "";
         if (currentUser) updateUserDisplay(); else document.getElementById('user-modal').classList.add('open');
-        
-        // 2. CARREGA DADOS LOCAIS IMEDIATAMENTE
-        loadLocalData();
         
         document.getElementById('date').valueAsDate = new Date();
         document.getElementById('quick-date').valueAsDate = new Date();
@@ -236,61 +244,20 @@
         quickCatSelect.innerHTML = categories.expense.map(c => `<option value="${c}">${c}</option>`).join('');
         populateMonthFilter();
         
-        // Listeners dos formulários locais
         document.getElementById('transaction-form').addEventListener('submit', handleMainFormSubmit);
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
         setupNotifications();
 
-        // 3. TENTA CONEXÃO COM FIREBASE (SÓ SE OS SCRIPTS CARREGARAM)
-        // O "defer" nos scripts permite que a página carregue antes.
-        // Se não houver internet, "firebase" será undefined.
-        if (typeof firebase !== 'undefined') {
-            try {
-                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                
-                // Ativa persistência local do Firebase (fila de sincronização automática)
-                db.enablePersistence().catch(err => {
-                    console.log("Persistência Firebase:", err.code);
-                    if (err.code == 'failed-precondition') {
-                        console.warn('Múltiplas abas abertas.');
-                    } else if (err.code == 'unimplemented') {
-                        console.warn('Browser não suporta persistência.');
-                    }
-                });
-
-                isFirebaseActive = true;
-                updateStatus('online');
-                listenForData(); // Inicia sincronização com a nuvem
-
-                // Ouvintes de conexão
-                window.addEventListener('online', () => {
-                     updateStatus('online');
-                     // Se voltar a internet, podemos tentar sincronizar ou apenas avisar
-                     if(!isFirebaseActive && typeof firebase !== 'undefined') {
-                         // Tenta reconectar se falhou antes
-                         location.reload(); 
-                     }
-                });
-                window.addEventListener('offline', () => {
-                     updateStatus('offline');
-                });
-
-            } catch (e) {
-                console.error("Firebase Error", e);
-                fallbackToOfflineOnly();
-            }
-        } else {
-            // Scripts do Firebase não carregaram (usuário totalmente offline)
-            fallbackToOfflineOnly();
-        }
+        // 2. TENTA CONEXÃO COM FIREBASE APÓS PEQUENO DELAY (NÃO BLOQUEIA)
+        // Usamos setTimeout para garantir que a UI já apareceu antes de tentar conectar
+        setTimeout(initFirebase, 500);
     });
 
     function loadLocalData() {
+        // Carrega transações e cartões do cache local
         const t = localStorage.getItem('local_transactions');
         const c = localStorage.getItem('mock_cards');
         if (t) transactions = JSON.parse(t);
-        // MIGRATION: Converter array de strings antigo para array de objetos
         if (c) {
             const parsedCards = JSON.parse(c);
             if (parsedCards.length > 0 && typeof parsedCards[0] === 'string') {
@@ -302,13 +269,65 @@
         updateCardSelect();
         updateUI();
     }
+
+    function initFirebase() {
+        // Verifica se o script carregou
+        if (typeof firebase === 'undefined') {
+            console.log("Firebase script not loaded. Running offline.");
+            fallbackToOfflineOnly();
+            return;
+        }
+
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            
+            // Habilita persistência (ÍndexDB do Firebase) - Isso salva offline automaticamente
+            db.enablePersistence({ synchronizeTabs: true })
+                .then(() => {
+                    console.log("Firebase persistence enabled");
+                    isFirebaseActive = true;
+                    updateStatus('online');
+                    listenForData();
+                })
+                .catch((err) => {
+                    console.error("Persistence failed:", err);
+                    if (err.code == 'failed-precondition') {
+                        // Múltiplas abas
+                        isFirebaseActive = true;
+                        updateStatus('online');
+                        listenForData();
+                    } else {
+                        // Browser não suporta
+                        fallbackToOfflineOnly();
+                    }
+                });
+
+            // Ouvintes de rede para atualizar o status
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+
+        } catch (e) {
+            console.error("Firebase Init Error", e);
+            fallbackToOfflineOnly();
+        }
+    }
+
+    function updateNetworkStatus() {
+        if(!db) return;
+        if(navigator.onLine) {
+            updateStatus('online');
+        } else {
+            updateStatus('syncing'); // "Sincronizando..." mas permite uso
+        }
+    }
+
     function fallbackToOfflineOnly() { 
         isFirebaseActive = false; 
         updateStatus('offline'); 
-        // Não mostra toast de erro imediatamente para não incomodar, 
-        // apenas o status visual muda.
-        console.log("Modo Offline Ativado"); 
+        console.log("Modo Offline Apenas (LocalStorage)"); 
     }
+
     function setupNotifications() {
         if (!("Notification" in window)) return;
         if (Notification.permission !== "denied") Notification.requestPermission();
@@ -331,11 +350,25 @@
     }
     function listenForData() {
         if(!db) return;
+        // Listener principal
         db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
+            const source = snapshot.metadata.hasPendingWrites ? 'Local' : 'Server';
+            if(source === 'Local') {
+                document.getElementById('sync-spinner').style.display = 'block';
+            } else {
+                document.getElementById('sync-spinner').style.display = 'none';
+            }
+
             transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Mantém o localStorage sincronizado como backup
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
-        }, err => { if(err.code === 'permission-denied') fallbackToOfflineOnly(); });
+        }, err => { 
+            console.error("Listen Error", err);
+            fallbackToOfflineOnly(); 
+        });
+
+        // Listener de cartões
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
                 let loadedCards = doc.data().cards;
@@ -381,19 +414,41 @@
         }
         Promise.all(promises).then(() => { showToast(`${count}x Geradas!`, "success"); resetForm(); });
     }
+    
+    // FUNÇÃO CHAVE PARA SINCRONIZAÇÃO
     function submitSingleTransaction(data, isEdit, id = null, skipReset = false) {
         const historyEntry = { action: isEdit ? 'editado' : 'criado', user: currentUser, date: new Date().toISOString() };
-        if (isFirebaseActive) {
-            if (isEdit) { db.collection('transactions').doc(id).update(data).then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } }); }
-            else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); data.history = [historyEntry]; db.collection('transactions').add(data).then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } }); }
+        
+        // ESTRATÉGIA DE SINCRONIZAÇÃO:
+        // Se 'db' existe (scripts carregaram), mandamos para o Firebase MESMO OFFLINE.
+        // O Firebase enfileira o pedido e envia quando a internet voltar.
+        // Se 'db' não existe, salvamos no localStorage manual.
+        
+        if (db) {
+            // Modo Firebase (Online ou Offline com Suporte)
+            if (isEdit) { 
+                db.collection('transactions').doc(id).update(data).then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } }); 
+            } else { 
+                data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
+                data.history = [historyEntry]; 
+                db.collection('transactions').add(data).then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } }); 
+            }
         } else {
-            if (isEdit) { const idx = transactions.findIndex(t => t.id === id); if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; }
-            else { data.id = Date.now().toString(); data.history = [historyEntry]; transactions.push(data); }
+            // Modo Apenas Local (Scripts não carregaram)
+            if (isEdit) { 
+                const idx = transactions.findIndex(t => t.id === id); 
+                if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; 
+            } else { 
+                data.id = Date.now().toString(); 
+                data.history = [historyEntry]; 
+                transactions.push(data); 
+            }
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
             if(!skipReset) { showToast("Salvo Localmente", "success"); resetForm(); }
         }
     }
+
     function handleQuickFormSubmit(e) {
         e.preventDefault();
         const baseData = {
@@ -411,10 +466,9 @@
         else { submitSingleTransaction(baseData, false); document.getElementById('quick-card-form').reset(); document.getElementById('quick-date').valueAsDate = new Date(); }
     }
     
-    // NOVA FUNÇÃO: Calcular Mês da Fatura (Ciclo)
     function getBillingCycle(dateStr, closingDay) {
         if (!dateStr) return 'unknown';
-        const d = new Date(dateStr + 'T12:00:00'); // Fix timezone issue
+        const d = new Date(dateStr + 'T12:00:00'); 
         if (d.getDate() > closingDay) {
             d.setMonth(d.getMonth() + 1);
         }
@@ -428,7 +482,6 @@
         
         const cardTransactions = transactions.filter(t => {
             if (t.card !== cardName) return false;
-            // Filtro por Ciclo de Fatura
             if (filterVal !== 'all') {
                 const cycle = getBillingCycle(t.date, closing);
                 return cycle === filterVal;
@@ -461,7 +514,7 @@
             if (confirm(`APAGAR TODAS as parcelas de:\n${baseDesc}`)) {
                 const seriesItems = transactions.filter(t => t.description.startsWith(baseDesc));
                 if(seriesItems.length === 0) { showToast("Nenhum item encontrado.", "error"); return; }
-                if (isFirebaseActive) {
+                if (db) {
                     const batch = db.batch();
                     seriesItems.forEach(t => batch.delete(db.collection('transactions').doc(t.id)));
                     batch.commit().then(() => { showToast(`Série completa excluída`, "success"); openCardHistory(cardName); });
@@ -479,7 +532,7 @@
             transactions[idx].status = 'paid';
             transactions[idx].history = transactions[idx].history || [];
             transactions[idx].history.push({ action: 'pago', user: currentUser, date: new Date().toISOString() });
-            if (isFirebaseActive) { db.collection('transactions').doc(id).update({ status: 'paid', history: transactions[idx].history }); }
+            if (db) { db.collection('transactions').doc(id).update({ status: 'paid', history: transactions[idx].history }); }
             else { localStorage.setItem('local_transactions', JSON.stringify(transactions)); updateUI(); }
             showToast("Conta marcada como paga!", "success");
         }
@@ -488,7 +541,7 @@
         if(confirm(`Pagar TODAS as pendências do cartão ${cardName}?`)) {
             const pendingItems = transactions.filter(t => t.card === cardName && t.status === 'pending');
             if(pendingItems.length === 0) { showToast("Nenhum item pendente.", "error"); return; }
-            if (isFirebaseActive) {
+            if (db) {
                 const batch = db.batch();
                 pendingItems.forEach(t => {
                     const newHistory = [...(t.history||[]), { action: 'pago', user: currentUser, date: new Date().toISOString() }];
@@ -505,7 +558,7 @@
     }
     function deleteTransaction(id) {
         if(confirm("Excluir permanentemente?")) {
-            if(isFirebaseActive) db.collection('transactions').doc(id).delete();
+            if(db) db.collection('transactions').doc(id).delete();
             else { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('local_transactions', JSON.stringify(transactions)); updateUI(); }
         }
     }
@@ -555,7 +608,6 @@
     function getFilteredTransactions() {
         const filterVal = document.getElementById('month-filter').value;
         if (filterVal === 'all') return transactions;
-        // Filtro padrão baseado em data da compra (para visão geral)
         return transactions.filter(t => t.date && t.date.startsWith(filterVal));
     }
     function updateUI() {
@@ -567,7 +619,6 @@
         const realBalance = income + expensePaid;
         document.getElementById('display-balance').innerText = formatCurrency(realBalance);
         
-        // Lógica de Pendentes baseada em Ciclo de Fatura
         const filterVal = document.getElementById('month-filter').value;
         let pendingTotalMonth = 0;
         
@@ -582,7 +633,6 @@
                         const cycle = getBillingCycle(t.date, closing);
                         if (cycle === filterVal) belongsToFilter = true;
                     } else {
-                        // Sem cartão: usa data normal
                         if (t.date && t.date.startsWith(filterVal)) belongsToFilter = true;
                     }
                 }
@@ -592,8 +642,8 @@
         document.getElementById('display-pending').innerText = formatCurrency(Math.abs(pendingTotalMonth));
 
         renderTableGrouped(filtered, 'transactions-list');
-        renderPendingList(); // Passa transações completas e filtra internamente
-        renderPaidList(filtered); // Pagos usam data normal
+        renderPendingList();
+        renderPaidList(filtered);
         updateCardsView();
         updateChart(filtered);
         renderAuditLog();
@@ -618,18 +668,15 @@
         });
     }
     
-    // Atualizado para filtrar por Ciclo
     function renderPendingList() {
         const list = document.getElementById('pending-list');
         list.innerHTML = "";
         const filterVal = document.getElementById('month-filter').value;
-        
         const cardGroups = {};
         const singles = [];
         
         transactions.forEach(t => {
             if (t.status !== 'pending' || t.type !== 'expense') return;
-            
             let belongsToFilter = false;
             if (t.card) {
                 const cardConfig = cards.find(c => c.name === t.card);
@@ -639,9 +686,7 @@
             } else {
                 if (t.date && t.date.startsWith(filterVal)) belongsToFilter = true;
             }
-
             if (!belongsToFilter) return;
-
             if (t.card) {
                 if(!cardGroups[t.card]) cardGroups[t.card] = { items: [], total: 0, minDate: t.date };
                 cardGroups[t.card].items.push(t);
@@ -686,7 +731,6 @@
         });
     }
     
-    // Atualizado para filtrar por Ciclo
     function updateCardsView() {
         const container = document.getElementById('cards-summary-container');
         container.innerHTML = "";
@@ -695,11 +739,9 @@
         
         transactions.forEach(t => {
             if (t.card && t.amount < 0) {
-                // Lógica de Ciclo
                 const cardConfig = cards.find(c => c.name === t.card);
                 const closing = cardConfig ? cardConfig.closingDay : 25;
                 const cycle = getBillingCycle(t.date, closing);
-                
                 if (cycle === filterVal) {
                     cardTotals[t.card] = (cardTotals[t.card] || 0) + t.amount;
                 }
@@ -714,10 +756,7 @@
     }
 
     function updateChart(data) {
-        if (typeof Chart === 'undefined') {
-            // Se estiver offline e o Chart não carregou, esconde o canvas ou mostra msg
-            return; 
-        }
+        if (typeof Chart === 'undefined') return; 
         const ctx = document.getElementById('financeChart').getContext('2d');
         const expenses = data.filter(t => t.type === 'expense' || t.amount < 0);
         const totals = {};
@@ -756,8 +795,9 @@
     function updateThemeIcon() { const icon = document.getElementById('theme-icon'); if (document.body.getAttribute('data-theme') === 'dark') { icon.className = 'fas fa-sun'; } else { icon.className = 'fas fa-moon'; } }
     function updateStatus(status) {
         const dot = document.getElementById('status-dot'); const text = document.getElementById('status-text'); dot.className = 'status-dot';
-        if (status === 'online') { dot.classList.add('online'); text.innerText = "Nuvem"; }
-        else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Local"; }
+        if (status === 'online') { dot.classList.add('online'); text.innerText = "Nuvem"; document.getElementById('sync-spinner').style.display = 'none'; }
+        else if (status === 'syncing') { dot.classList.add('offline'); text.innerText = "Sincronizando..."; document.getElementById('sync-spinner').style.display = 'block'; }
+        else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Local"; document.getElementById('sync-spinner').style.display = 'none'; }
     }
     function setUser() { const input = document.getElementById('username-input'); if (input.value.trim()) { currentUser = input.value.trim(); localStorage.setItem('currentUser', currentUser); updateUserDisplay(); closeModal('user-modal'); } }
     function changeUser() { document.getElementById('username-input').value = ""; document.getElementById('user-modal').classList.add('open'); }
@@ -797,7 +837,7 @@
         if(confirm("Excluir este cartão?")) { cards.splice(index, 1); saveCards(); openCardManager(); }
     }
     function saveCards() {
-        if(isFirebaseActive) db.collection('settings').doc('config').set({ cards: cards });
+        if(db) db.collection('settings').doc('config').set({ cards: cards });
         else { localStorage.setItem('mock_cards', JSON.stringify(cards)); }
         updateCardSelect();
         updateUI();
