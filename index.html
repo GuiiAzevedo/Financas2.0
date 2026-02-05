@@ -2,174 +2,92 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finanças do Casal Ultimate - Pro</title>
-    
-    <!-- Configurações para Ícone e PWA (Instalar App) -->
-    <link rel="apple-touch-icon" href="/Financas2.0/icon.png">
-    <link rel="manifest" href="/Financas2.0/manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
     <meta name="theme-color" content="#4f46e5">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #111827;
-            --text-light: #6b7280;
-            --border-color: #e5e7eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --radius: 12px;
-        }
-
-        [data-theme="dark"] {
-            --primary: #6366f1;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --text-main: #f9fafb;
-            --text-light: #9ca3af;
-            --border-color: #374151;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
-
+        :root { --primary: #4f46e5; --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #111827; --text-light: #6b7280; --border-color: #e5e7eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); --radius: 12px; }
+        [data-theme="dark"] { --primary: #6366f1; --bg-color: #111827; --card-bg: #1f2937; --text-main: #f9fafb; --text-light: #9ca3af; --border-color: #374151; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
-
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; min-height: 100vh; padding-bottom: 80px; }
         .container { max-width: 1100px; margin: 0 auto; }
-
-        /* Header */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-        .app-branding h1 { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .app-branding i { color: var(--primary); }
-        
-        .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-
-        .user-badge { background: var(--primary); color: white; padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
-        .user-badge:hover { opacity: 0.9; }
-
-        .status-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-light); background: var(--card-bg); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .app-branding h1 { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .user-badge { background: var(--primary); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .status-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-light); background: var(--card-bg); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--border-color); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--text-light); }
         .status-dot.online { background-color: var(--success); box-shadow: 0 0 5px var(--success); }
         .status-dot.offline { background-color: var(--warning); }
-
-        .btn-icon { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .btn-icon { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; }
         .btn-icon:hover { transform: translateY(-2px); border-color: var(--primary); color: var(--primary); }
-
-        /* Tabs */
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; overflow-x: auto; }
-        .tab-btn { background: none; border: none; font-size: 0.95rem; color: var(--text-light); cursor: pointer; padding: 8px 16px; border-radius: 8px; font-weight: 500; white-space: nowrap; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; overflow-x: auto; }
+        .tab-btn { background: none; border: none; font-size: 0.9rem; color: var(--text-light); cursor: pointer; padding: 8px 16px; border-radius: 8px; font-weight: 500; white-space: nowrap; }
         .tab-btn:hover { background: rgba(79, 70, 229, 0.05); color: var(--primary); }
         .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3); }
-
-        /* Grid & Cards */
-        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
-        .card h3 { font-size: 0.8rem; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-        .card .value { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .card { background: var(--card-bg); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border-color); position: relative; overflow: hidden; }
+        .card h3 { font-size: 0.75rem; color: var(--text-light); margin-bottom: 5px; text-transform: uppercase; font-weight: 600; }
+        .card .value { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
         .card.income .value { color: var(--success); }
         .card.expense .value { color: var(--danger); }
         .card.balance .value { color: var(--primary); }
-
-        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; margin-bottom: 25px; }
+        .main-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; margin-bottom: 25px; }
         @media (max-width: 850px) { .main-grid { grid-template-columns: 1fr; } }
-
-        .section-box { background: var(--card-bg); padding: 25px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
-        .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
-
-        /* Form */
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--text-light); font-weight: 500; }
-        input, select { width: 100%; padding: 10px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 0.95rem; outline: none; }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; font-size: 0.95rem; }
+        .section-box { background: var(--card-bg); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.8rem; color: var(--text-light); font-weight: 500; }
+        input, select { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 0.9rem; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
         .btn:hover { background: var(--primary-hover); }
         .btn:active { transform: scale(0.98); }
         .btn-cancel { background: var(--bg-color); color: var(--danger); border: 1px solid var(--border-color); margin-top: 10px; display: none; }
-        .btn-cancel:hover { background: #fee2e2; }
         .btn-sm { width: auto; padding: 6px 12px; font-size: 0.8rem; }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .btn-outline:hover { background: var(--primary); color: white; }
-
-        /* Table */
+        .btn-pay { background: var(--success); color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; width: 100%; font-weight: 600; z-index: 10; position: relative; }
+        .btn-pay:hover { background: #059669; }
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; color: var(--text-light); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
-        td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: middle; }
+        th { text-align: left; padding: 10px; color: var(--text-light); font-size: 0.7rem; text-transform: uppercase; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
-        
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        tr.pending-row { background-color: rgba(245, 158, 11, 0.05); }
+        tr.paid-row { background-color: rgba(16, 185, 129, 0.02); opacity: 0.7; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
         .badge-income { background: rgba(16, 185, 129, 0.1); color: var(--success); }
         .badge-expense { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-        
-        .badge-card { 
-            padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; 
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-            display: inline-flex; align-items: center; gap: 5px; color: white;
-        }
-
-        .actions-cell { display: flex; gap: 8px; }
-        .action-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 0.9rem; padding: 4px; border-radius: 4px; }
-        .action-btn:hover { background: var(--bg-color); color: var(--primary); }
+        .badge-paid { background: #d1fae5; color: #065f46; }
+        .badge-card { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; color: white; display: inline-flex; align-items: center; gap: 4px; }
+        .actions-cell { display: flex; gap: 5px; align-items: center; justify-content: center; }
+        .action-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 0.85rem; padding: 4px; border-radius: 4px; z-index: 10; position: relative; }
+        .action-btn:hover { color: var(--primary); background: var(--bg-color); }
         .action-btn.delete:hover { color: var(--danger); background: #fee2e2; }
-
-        /* Modals */
+        .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .month-filter { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.85rem; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .modal { background: var(--card-bg); padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); transform: translateY(20px); transition: transform 0.3s; }
+        .modal { background: var(--card-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto; }
         .modal-overlay.open .modal { transform: translateY(0); }
-        .modal h2 { margin-bottom: 20px; font-size: 1.25rem; }
-        
-        /* Log Specifics */
-        .log-item { padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .log-item:last-child { border: none; }
-        .log-info strong { display: block; color: var(--text-main); font-size: 0.9rem; }
-        .log-meta { font-size: 0.75rem; color: var(--text-light); text-align: right; }
-
-        /* Card Manager Styles */
-        .card-manager-list { margin-top: 15px; display: grid; gap: 10px; max-height: 300px; overflow-y: auto; }
-        .card-manager-item { background: var(--bg-color); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
-        
-        /* Card Visual Item (Resumo) */
-        .card-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 18px; border-radius: 12px; margin-bottom: 15px; 
-            color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            position: relative; overflow: hidden;
-        }
-        .card-item::after {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            pointer-events: none;
-        }
-        .card-item-icon { font-size: 1.8rem; margin-right: 15px; }
-
-        /* Toast */
-        .toast {
-            position: fixed; bottom: 20px; right: 20px;
-            background: var(--card-bg); color: var(--text-main);
-            padding: 12px 20px; border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid var(--primary);
-            display: flex; align-items: center; gap: 10px;
-            transform: translateY(100px); transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 2000; font-size: 0.9rem; font-weight: 500;
-        }
+        .modal.large { max-width: 600px; }
+        .modal h2 { margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        .card-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; box-shadow: var(--shadow); position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s; user-select: none; }
+        .card-item:hover { transform: scale(1.02); }
+        .card-item:active { transform: scale(0.98); }
+        .card-item-icon { font-size: 1.5rem; margin-right: 12px; }
+        .table-subheader { background-color: var(--bg-color); color: var(--primary); font-weight: 700; padding: 10px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); margin-top: 20px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); color: var(--text-main); padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 10px; transform: translateY(100px); transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 2000; font-size: 0.9rem; font-weight: 500; }
         .toast.show { transform: translateY(0); }
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
     </style>
 </head>
 <body>
-
-<!-- User Modal -->
 <div id="user-modal" class="modal-overlay">
     <div class="modal">
         <h2>Quem está acessando?</h2>
@@ -178,8 +96,6 @@
         <button class="btn" onclick="setUser()">Entrar no Sistema</button>
     </div>
 </div>
-
-<!-- Card Manager Modal -->
 <div id="card-modal" class="modal-overlay">
     <div class="modal">
         <h2>Gerenciar Cartões</h2>
@@ -187,12 +103,28 @@
             <input type="text" id="new-card-name" placeholder="Nome do novo cartão">
             <button class="btn btn-sm" style="width: auto;" onclick="addCard()"><i class="fas fa-plus"></i></button>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">Sugestões: Nubank, Inter, Visa, Max...</div>
-        <div id="card-manager-list" class="card-manager-list"></div>
+        <div id="card-manager-list" class="card-manager-list" style="max-height: 250px; overflow-y: auto;"></div>
         <button class="btn btn-outline" style="margin-top: 20px;" onclick="closeModal('card-modal')">Fechar</button>
     </div>
 </div>
-
+<div id="card-history-modal" class="modal-overlay">
+    <div class="modal large">
+        <h2 id="history-modal-title">
+            <span>Extrato do Cartão</span>
+            <button class="action-btn" onclick="closeModal('card-history-modal')"><i class="fas fa-times"></i></button>
+        </h2>
+        <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px;" id="history-modal-subtitle"></div>
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table>
+                <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
+                <tbody id="card-history-list"></tbody>
+            </table>
+        </div>
+        <div style="margin-top: 15px; text-align: right; font-weight: bold; font-size: 1.1rem;">
+            Total: <span id="history-modal-total" style="color: var(--danger);">R$ 0,00</span>
+        </div>
+    </div>
+</div>
 <div class="container">
     <header>
         <div class="app-branding">
@@ -202,35 +134,41 @@
         <div class="header-controls">
             <div class="status-indicator" id="status-indicator" title="Status de Conexão">
                 <div class="status-dot" id="status-dot"></div>
-                <span id="status-text">Conectando...</span>
+                <span id="status-text">...</span>
             </div>
             <button class="btn-icon" onclick="toggleTheme()" title="Alternar Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
             <button class="btn-icon" onclick="exportToExcel()" title="Baixar Excel"><i class="fas fa-file-excel" style="color: #107c41;"></i></button>
             <button class="btn-icon" onclick="generatePDF()" title="Baixar PDF"><i class="fas fa-file-pdf" style="color: #b30b00;"></i></button>
         </div>
     </header>
-
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('geral')"><i class="fas fa-chart-pie"></i> Visão Geral</button>
-        <button class="tab-btn" onclick="switchTab('cartoes')"><i class="fas fa-credit-card"></i> Meus Cartões</button>
-        <button class="tab-btn" onclick="switchTab('log')"><i class="fas fa-history"></i> Auditoria</button>
+        <button class="tab-btn" onclick="switchTab('cartoes')"><i class="fas fa-credit-card"></i> Cartões</button>
+        <button class="tab-btn" onclick="switchTab('contas')"><i class="fas fa-file-invoice-dollar"></i> Contas a Pagar</button>
+        <button class="tab-btn" onclick="switchTab('auditoria')"><i class="fas fa-history"></i> Auditoria</button>
     </div>
-
-    <!-- ABA GERAL -->
     <div id="tab-geral">
         <section class="summary">
             <div class="card income"><h3>Entradas</h3><div class="value" id="display-income">R$ 0,00</div></div>
-            <div class="card expense"><h3>Saídas</h3><div class="value" id="display-expense">R$ 0,00</div></div>
-            <div class="card balance"><h3>Saldo Atual</h3><div class="value" id="display-balance">R$ 0,00</div></div>
+            <div class="card expense"><h3>Saídas Pagas</h3><div class="value" id="display-expense">R$ 0,00</div></div>
+            <div class="card balance" style="border-left: 5px solid var(--warning);">
+                <h3>Contas Pendentes</h3><div class="value" id="display-pending" style="color: var(--warning);">R$ 0,00</div>
+                <div id="pending-month-label" style="font-size:0.6rem; color:var(--text-light); margin-top:4px;">(Mês Selecionado)</div>
+            </div>
+            <div class="card balance"><h3>Saldo em Conta</h3><div class="value" id="display-balance">R$ 0,00</div></div>
         </section>
-
         <div class="main-grid">
             <section class="section-box">
                 <h2 class="section-title" id="form-title"><i class="fas fa-plus-circle"></i> Nova Transação</h2>
                 <form id="transaction-form">
                     <input type="hidden" id="edit-id">
-                    <div class="form-group"><label>Descrição</label><input type="text" id="desc" placeholder="Ex: Mercado Semanal" required></div>
-                    <div class="form-group"><label>Valor (R$)</label><input type="number" id="amount" step="0.01" min="0.01" placeholder="0,00" required></div>
+                    <div class="form-group"><label>Descrição</label><input type="text" id="desc" placeholder="Ex: Mercado" required></div>
+                    <div class="form-group">
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1;"><label>Valor (R$)</label><input type="number" id="amount" step="0.01" min="0.01" placeholder="0,00" required></div>
+                            <div style="width: 80px;"><label>Parcelas</label><input type="number" id="installments" min="1" max="60" value="1" title="Deixe 1 para à vista"></div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <div style="display: flex; gap: 10px;">
                             <div style="flex: 1;">
@@ -240,484 +178,331 @@
                                     <option value="expense">Saída (-)</option>
                                 </select>
                             </div>
-                            <div style="flex: 1;">
-                                <label>Categoria</label>
-                                <select id="category"></select>
-                            </div>
+                            <div style="flex: 1;"><label>Categoria</label><select id="category"></select></div>
                         </div>
                     </div>
-                    <div class="form-group" id="card-group" style="display: none;">
-                        <label>Cartão de Crédito</label>
-                        <select id="card-select"></select>
-                    </div>
+                    <div class="form-group" id="card-group" style="display: none;"><label>Cartão de Crédito</label><select id="card-select"></select></div>
                     <div class="form-group"><label>Data</label><input type="date" id="date" required></div>
-                    <button type="submit" class="btn" id="submit-btn"><i class="fas fa-save"></i> Salvar Transação</button>
-                    <button type="button" class="btn btn-cancel" id="cancel-btn" onclick="resetForm()">Cancelar Edição</button>
+                    <div class="form-group" id="status-group">
+                         <label>Status Inicial</label>
+                         <select id="status">
+                             <option value="paid">Já Pago (Confirmado)</option>
+                             <option value="pending">A Pagar (Pendente)</option>
+                         </select>
+                    </div>
+                    <button type="submit" class="btn" id="submit-btn"><i class="fas fa-save"></i> Salvar</button>
+                    <button type="button" class="btn btn-cancel" id="cancel-btn" onclick="resetForm()">Cancelar</button>
                 </form>
             </section>
             <section class="section-box">
-                <h2 class="section-title"><i class="fas fa-chart-donut"></i> Distribuição de Despesas</h2>
-                <div style="height: 250px; position: relative; display: flex; justify-content: center;">
-                    <canvas id="financeChart"></canvas>
+                <div class="filter-bar">
+                    <h2 class="section-title" style="margin:0; border:none;">Resumo de Gastos</h2>
+                    <select id="month-filter" class="month-filter" onchange="updateUI()"></select>
                 </div>
+                <div style="height: 250px; position: relative; display: flex; justify-content: center;"><canvas id="financeChart"></canvas></div>
             </section>
         </div>
         <section class="section-box">
-            <h2 class="section-title">Últimas Transações</h2>
+            <h2 class="section-title">Histórico Resumido (Mês Atual)</h2>
+            <p style="font-size:0.8rem; color:var(--text-light); margin-bottom:10px;">Gastos no cartão são agrupados. Clique em "Ver Detalhes" para expandir.</p>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
+                    <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Status</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
                     <tbody id="transactions-list"></tbody>
                 </table>
             </div>
         </section>
     </div>
-
-    <!-- ABA CARTÕES -->
     <div id="tab-cartoes" style="display: none;">
-        
-        <!-- ÁREA DE GASTO RÁPIDO -->
         <section class="section-box" style="border-left: 5px solid var(--primary);">
             <h2 class="section-title"><i class="fas fa-bolt"></i> Lançamento Rápido</h2>
             <form id="quick-card-form">
+                <div class="form-group"><label>Cartão</label><select id="quick-card-select" required></select></div>
+                <div class="form-group"><label>O que foi comprado?</label><input type="text" id="quick-desc" required></div>
+                <div class="form-group"><label>Categoria</label><select id="quick-category"></select></div>
                 <div class="form-group">
-                    <label>Selecione o Cartão</label>
-                    <select id="quick-card-select" required></select>
-                </div>
-                <div class="form-group">
-                    <label>O que foi comprado?</label>
-                    <input type="text" id="quick-desc" placeholder="Ex: Jantar, Gasolina..." required>
-                </div>
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select id="quick-category"></select>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex: 1;" class="form-group">
-                        <label>Valor (R$)</label>
-                        <input type="number" id="quick-amount" step="0.01" min="0.01" required>
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1"><label>Valor Total</label><input type="number" id="quick-amount" step="0.01" required></div>
+                        <div style="width:80px"><label>Parcelas</label><input type="number" id="quick-installments" min="1" value="1"></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Data da Compra</label>
-                    <input type="date" id="quick-date" required>
-                </div>
+                <div class="form-group"><label>Data da Compra</label><input type="date" id="quick-date" required></div>
                 <button type="submit" class="btn btn-outline"><i class="fas fa-check"></i> Lançar Agora</button>
             </form>
         </section>
-
         <div class="section-box">
-            <div class="section-title">
-                Faturas Atuais
-                <button class="btn btn-sm" onclick="openCardManager()"><i class="fas fa-cog"></i> Gerenciar Cartões</button>
-            </div>
-            <p style="margin-bottom: 20px; color: var(--text-light); font-size: 0.9rem;">Valores acumulados neste mês em cada cartão.</p>
+            <div class="section-title">Faturas do Mês Selecionado <button class="btn btn-sm" onclick="openCardManager()"><i class="fas fa-cog"></i> Gerenciar</button></div>
+            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">Clique no cartão para ver o detalhamento.</p>
             <div id="cards-summary-container"></div>
         </div>
-        
-        <div class="section-box">
-            <h2 class="section-title">Extrato por Cartão</h2>
+    </div>
+    <div id="tab-contas" style="display: none;">
+        <div class="section-box" style="border: 2px solid var(--warning);">
+            <h2 class="section-title" style="color: var(--warning);"><i class="fas fa-bell"></i> Contas Vencendo (Mês Selecionado)</h2>
+            <p style="margin-bottom: 15px; color: var(--text-light);">As compras no cartão são agrupadas automaticamente como "Fatura do Mês".</p>
             <div class="table-container">
-                <table>
-                    <thead><tr><th>Cartão</th><th>Data</th><th>Descrição</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
-                    <tbody id="cards-list"></tbody>
-                </table>
+                <table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Valor</th><th>Ação</th></tr></thead><tbody id="pending-list"></tbody></table>
+            </div>
+            <div class="table-subheader"><i class="fas fa-check-circle"></i> Contas Pagas (Mês Selecionado)</div>
+            <div class="table-container">
+                <table><thead><tr><th>Data Pagamento</th><th>Descrição</th><th>Valor</th><th>Pago por</th></tr></thead><tbody id="paid-list"></tbody></table>
             </div>
         </div>
     </div>
-
-    <!-- ABA LOG GLOBAL -->
-    <div id="tab-log" style="display: none;">
+    <div id="tab-auditoria" style="display: none;">
         <div class="section-box">
-            <h2 class="section-title"><i class="fas fa-shield-alt"></i> Auditoria do Sistema</h2>
-            <p style="margin-bottom: 15px; color: var(--text-light);">Rastreio completo de quem criou ou editou cada item.</p>
-            <div id="global-log-list"></div>
+            <h2 class="section-title"><i class="fas fa-history"></i> Log de Auditoria Completo</h2>
+            <div class="table-container">
+                <table><thead><tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Item</th><th>Valor</th></tr></thead><tbody id="audit-list"></tbody></table>
+            </div>
         </div>
     </div>
 </div>
-
-<!-- Toast Notification Container -->
-<div id="toast" class="toast">
-    <i id="toast-icon" class="fas"></i>
-    <span id="toast-msg">Mensagem</span>
-</div>
-
-<!-- Scripts: Bibliotecas Externas -->
+<div id="toast" class="toast"><i id="toast-icon" class="fas"></i><span id="toast-msg">Mensagem</span></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-
-<!-- Firebase SDKs (Compat version for single-file usage) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
 <script>
-    /**
-     * CONFIGURAÇÃO FIREBASE
-     * Chaves fornecidas pelo usuário.
-     */
-    const firebaseConfig = {
-        apiKey: "AIzaSyCdm331rhwKzLpfM3u5jn48-c_bthiygRw",
-        authDomain: "finances2-efd87.firebaseapp.com",
-        projectId: "finances2-efd87",
-        storageBucket: "finances2-efd87.firebasestorage.app",
-        messagingSenderId: "645175309303",
-        appId: "1:645175309303:web:a5eca0bd0eec467b9234f2"
-    };
-
-    // --- ESTADO & DADOS ---
-    let db, transactions = [], cards = [], chartInstance = null, currentUser = "";
-    let isFirebaseActive = false;
-    let pendingWrites = []; // Fila para sincronização offline se necessário
-
-    const cardBrands = {
-        'Nubank': { icon: 'fa-robot', color: '#8a05be' }, 
-        'Inter': { icon: 'fa-hand-holding-dollar', color: '#ff7c00' }, 
-        'Caixa': { icon: 'fa-building-columns', color: '#004a8d' }, 
-        'Visa': { icon: 'fa-credit-card', color: '#1a1f71' }, 
-        'Master': { icon: 'fa-credit-card', color: '#eb001b' }, 
-        'Elo': { icon: 'fa-globe', color: '#000000' }, 
-        'Hipercard': { icon: 'fa-layer-group', color: '#b22b2b' }, 
-        'default': { icon: 'fa-credit-card', color: '#6b7280' } 
-    };
-
-    const categories = {
-        income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'],
-        expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros']
-    };
-
-    // --- INICIALIZAÇÃO E TENTATIVA DE CONEXÃO ---
-    document.addEventListener('DOMContentLoaded', () => {
-        // Tema
+    const firebaseConfig = { apiKey: "AIzaSyCdm331rhwKzLpfM3u5jn48-c_bthiygRw", authDomain: "finances2-efd87.firebaseapp.com", projectId: "finances2-efd87", storageBucket: "finances2-efd87.firebasestorage.app", messagingSenderId: "645175309303", appId: "1:645175309303:web:a5eca0bd0eec467b9234f2" };
+    let db, transactions = [], cards = [], chartInstance = null, currentUser = "", isFirebaseActive = false;
+    const cardBrands = { 'Nubank': { icon: 'fa-robot', color: '#8a05be' }, 'Inter': { icon: 'fa-university', color: '#ff7c00' }, 'Caixa': { icon: 'fa-building-columns', color: '#004a8d' }, 'Visa': { icon: 'fa-credit-card', color: '#1a1f71' }, 'Master': { icon: 'fa-credit-card', color: '#eb001b' }, 'Elo': { icon: 'fa-globe', color: '#000000' }, 'Hipercard': { icon: 'fa-layer-group', color: '#b22b2b' }, 'default': { icon: 'fa-credit-card', color: '#6b7280' } };
+    const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
+    document.addEventListener('DOMContentLoaded', async () => {
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
         updateThemeIcon();
-
-        // Datas padrão
+        currentUser = localStorage.getItem('currentUser') || "";
+        if (currentUser) updateUserDisplay(); else document.getElementById('user-modal').classList.add('open');
+        loadLocalData();
         document.getElementById('date').valueAsDate = new Date();
         document.getElementById('quick-date').valueAsDate = new Date();
-        
-        // Popula categorias
         updateCategories();
-        
-        // Popula categorias do form rápido
         const quickCatSelect = document.getElementById('quick-category');
         quickCatSelect.innerHTML = categories.expense.map(c => `<option value="${c}">${c}</option>`).join('');
-
-        // Usuário
-        const savedUser = localStorage.getItem('currentUser');
-        if (savedUser) {
-            currentUser = savedUser;
-            updateUserDisplay();
-        } else {
-            document.getElementById('user-modal').classList.add('open');
+        populateMonthFilter();
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            db.enablePersistence().catch(err => console.log("Persistence:", err.code));
+            isFirebaseActive = true;
+            updateStatus('online');
+            listenForData();
+        } catch (e) {
+            console.error("Firebase Error", e);
+            fallbackToOfflineOnly();
         }
-
-        // Tentativa de conexão com Firebase
-        initializeHybridSystem();
-
-        // Listeners
         document.getElementById('transaction-form').addEventListener('submit', handleMainFormSubmit);
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
+        setupNotifications();
     });
-
-    function initializeHybridSystem() {
-        updateStatus('connecting');
-        
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-
-            // Habilita persistência offline do Firebase
-            db.enablePersistence()
-                .then(() => {
-                    console.log("Firebase Persistence ativado");
-                })
-                .catch((err) => {
-                    if (err.code == 'failed-precondition') {
-                        console.warn('Múltiplas abas abertas. Persistência ativada apenas em uma.');
-                    } else if (err.code == 'unimplemented') {
-                        console.warn('Browser não suporta persistência.');
-                    }
-                });
-
-            // Se chegou aqui, Firebase iniciou, vamos tentar ouvir dados
-            isFirebaseActive = true;
-            listenForData();
-            updateStatus('online');
-
-        } catch (e) {
-            console.error("Falha no Firebase:", e);
-            fallbackToLocal();
-        }
-    }
-
-    function fallbackToLocal() {
-        isFirebaseActive = false;
-        updateStatus('offline');
-        
-        // Carregar do LocalStorage
-        const localTrans = localStorage.getItem('local_transactions');
-        const localCards = localStorage.getItem('mock_cards');
-
-        if (localTrans) transactions = JSON.parse(localTrans);
-        if (localCards) cards = JSON.parse(localCards);
-        else cards = ['Nubank', 'Inter', 'Visa', 'Master']; // Padrão
-
-        updateCardSelect(); 
+    function loadLocalData() {
+        const t = localStorage.getItem('local_transactions');
+        const c = localStorage.getItem('mock_cards');
+        if (t) transactions = JSON.parse(t);
+        if (c) cards = JSON.parse(c); else cards = ['Nubank', 'Inter', 'Visa', 'Master'];
+        updateCardSelect();
         updateUI();
-        showToast("Modo Offline ativado (Dados salvos no navegador)", "warning");
     }
-
-    // --- GERENCIAMENTO DE STATUS ---
-    function updateStatus(status) {
-        const dot = document.getElementById('status-dot');
-        const text = document.getElementById('status-text');
-        
-        dot.className = 'status-dot'; // reset
-        if (status === 'online') {
-            dot.classList.add('online');
-            text.innerText = "Nuvem (Firebase)";
-        } else if (status === 'offline') {
-            dot.classList.add('offline');
-            text.innerText = "Local (Offline)";
-        } else {
-            text.innerText = "Conectando...";
-        }
+    function fallbackToOfflineOnly() { isFirebaseActive = false; updateStatus('offline'); showToast("Modo Offline", "warning"); }
+    function setupNotifications() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "denied") Notification.requestPermission();
+        setInterval(checkReminders, 60000);
+        checkReminders();
     }
-
-    function updateUserDisplay() {
-        document.getElementById('user-display').innerHTML = `<i class="fas fa-user"></i> ${currentUser}`;
-    }
-
-    // --- DATA LISTENER (FIREBASE) ---
-    function listenForData() {
-        // Listener de Transações
-        db.collection('transactions').orderBy('date', 'desc')
-            .onSnapshot(snapshot => {
-                transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Salvar backup local também
-                localStorage.setItem('local_transactions', JSON.stringify(transactions));
-                updateUI();
-            }, (error) => {
-                console.error("Erro no listener:", error);
-                // Se perder conexão repentinamente, não cai imediatamente para local, mantém o último estado ou avisa
-                if (error.code === 'permission-denied') {
-                    alert("Erro de permissão no Firebase. Verifique as regras do Firestore.");
-                    fallbackToLocal();
+    function checkReminders() {
+        if (Notification.permission !== "granted") return;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+        transactions.forEach(t => {
+            if (t.type === 'expense' && t.status === 'pending' && t.amount < 0) {
+                const tDate = new Date(t.date + 'T00:00:00');
+                const tDateClean = new Date(tDate.getFullYear(), tDate.getMonth(), tDate.getDate());
+                if (tDateClean.getTime() === today.getTime() || tDateClean.getTime() === tomorrow.getTime()) {
+                    new Notification(`Lembrete: ${t.description}`, { body: `Valor: ${formatCurrency(t.amount)}`, icon: 'https://cdn-icons-png.flaticon.com/512/3163/3163478.png' });
                 }
-            });
-
-        // Listener de Configurações (Cartões)
+            }
+        });
+    }
+    function listenForData() {
+        db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
+            transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            localStorage.setItem('local_transactions', JSON.stringify(transactions));
+            updateUI();
+        }, err => { if(err.code === 'permission-denied') fallbackToOfflineOnly(); });
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
                 cards = doc.data().cards;
                 localStorage.setItem('mock_cards', JSON.stringify(cards));
-                updateCardSelect(); 
-                updateUI(); // Re-render para atualizar visuais
-            } else if (!doc.exists) {
-                const initialCards = ['Nubank', 'Inter', 'Caixa'];
-                db.collection('settings').doc('config').set({ cards: initialCards });
-                cards = initialCards;
-                updateCardSelect();
+                updateCardSelect(); updateUI();
             }
-        }, (error) => {
-            console.error("Erro listener config:", error);
-            // Se falhar config, usa o que já tem em memória
         });
     }
-
-    // --- FUNÇÕES DE CARTÕES ---
-    function getCardStyle(cardName) {
-        const key = Object.keys(cardBrands).find(k => cardName.toLowerCase().includes(k.toLowerCase()));
-        return cardBrands[key] || cardBrands['default'];
-    }
-
-    function openCardManager() {
-        const list = document.getElementById('card-manager-list');
-        list.innerHTML = "";
-        cards.forEach((card, index) => {
-            const style = getCardStyle(card);
-            list.innerHTML += `
-                <div class="card-manager-item">
-                    <span><i class="fas ${style.icon}" style="color:${style.color}; margin-right:8px;"></i> ${card}</span>
-                    <div>
-                        <button class="action-btn" onclick="editCard(${index})"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete" onclick="deleteCard(${index})"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-        });
-        document.getElementById('card-modal').classList.add('open');
-    }
-
-    function addCard() {
-        const name = document.getElementById('new-card-name').value.trim();
-        if (!name) return;
-        if (cards.includes(name)) { showToast("Este cartão já existe", "error"); return; }
-        
-        cards.push(name);
-        saveCards();
-        document.getElementById('new-card-name').value = "";
-        openCardManager(); 
-        showToast("Cartão adicionado", "success");
-    }
-
-    function deleteCard(index) {
-        if(confirm(`Tem certeza que deseja excluir "${cards[index]}"?`)) {
-            cards.splice(index, 1);
-            saveCards();
-            openCardManager();
-        }
-    }
-
-    function editCard(index) {
-        const oldName = cards[index];
-        const newName = prompt("Novo nome do cartão:", oldName);
-        if (newName && newName !== oldName) {
-            const updateHistory = confirm("Atualizar o nome nas transações antigas também?");
-            cards[index] = newName;
-            saveCards();
-
-            if ((isFirebaseActive || !isFirebaseActive) && updateHistory) {
-                // Tenta atualizar histórico tanto no Firebase quanto no Local
-                transactions.forEach(t => { if(t.card === oldName) t.card = newName; });
-                
-                if(isFirebaseActive) {
-                    const batch = db.batch();
-                    transactions.forEach(t => {
-                        if (t.card === newName && t.id && t.id.length < 20) { // Checagem básica de ID do Firebase
-                            const ref = db.collection('transactions').doc(t.id);
-                            batch.update(ref, { card: newName });
-                        }
-                    });
-                    batch.commit();
-                } else {
-                    saveLocalData();
-                }
-            }
-            openCardManager();
-        }
-    }
-
-    function saveCards() {
-        if (isFirebaseActive) {
-            db.collection('settings').doc('config').set({ cards: cards }, { merge: true });
-        } else {
-            localStorage.setItem('mock_cards', JSON.stringify(cards));
-            updateCardSelect();
-        }
-    }
-
-    function updateCardSelect() {
-        const mainSelect = document.getElementById('card-select');
-        const quickSelect = document.getElementById('quick-card-select');
-        const optionsHTML = cards.map(c => `<option value="${c}">${c}</option>`).join('');
-        
-        mainSelect.innerHTML = '<option value="">À vista / Débito / Pix</option>' + optionsHTML;
-        quickSelect.innerHTML = '<option value="">Selecione...</option>' + optionsHTML;
-    }
-
-    function saveLocalData() {
-        localStorage.setItem('local_transactions', JSON.stringify(transactions));
-        updateUI();
-    }
-
-    // --- FORMULÁRIOS E TRANSAÇÕES ---
-    function handleTypeChange() {
-        const type = document.getElementById('type').value;
-        document.getElementById('card-group').style.display = type === 'expense' ? 'block' : 'none';
-        updateCategories();
-    }
-
     function handleMainFormSubmit(e) {
         e.preventDefault();
-        const id = document.getElementById('edit-id').value;
-        const isEdit = !!id;
-
-        const data = {
+        const isEdit = !!document.getElementById('edit-id').value;
+        const installmentCount = parseInt(document.getElementById('installments').value) || 1;
+        const baseData = {
             description: document.getElementById('desc').value,
-            amount: parseFloat(document.getElementById('amount').value),
+            amount: Math.abs(parseFloat(document.getElementById('amount').value)),
             type: document.getElementById('type').value,
             category: document.getElementById('category').value,
             date: document.getElementById('date').value,
-            card: document.getElementById('card-select').value
+            card: document.getElementById('card-select').value,
+            status: document.getElementById('status').value,
+            createdBy: currentUser
         };
-
-        if (data.type === 'expense') data.amount = -data.amount;
-
-        submitTransaction(data, isEdit, id);
+        if (baseData.type === 'expense') baseData.amount = -baseData.amount;
+        if (isEdit) { submitSingleTransaction(baseData, true, document.getElementById('edit-id').value); }
+        else { if (installmentCount > 1 && baseData.type === 'expense') { createInstallments(baseData, installmentCount); } else { submitSingleTransaction(baseData, false); } }
     }
-
+    function createInstallments(baseData, count) {
+        const amountPerMonth = baseData.amount / count;
+        let startDate = new Date(baseData.date);
+        const promises = [];
+        for(let i = 0; i < count; i++) {
+            const currentData = { ...baseData };
+            currentData.amount = amountPerMonth;
+            let d = new Date(startDate);
+            d.setMonth(d.getMonth() + i);
+            currentData.date = d.toISOString().split('T')[0];
+            currentData.description = `${baseData.description} (${i+1}/${count})`;
+            promises.push(submitSingleTransaction(currentData, false, null, true)); 
+        }
+        Promise.all(promises).then(() => { showToast(`${count}x Geradas!`, "success"); resetForm(); });
+    }
+    function submitSingleTransaction(data, isEdit, id = null, skipReset = false) {
+        const historyEntry = { action: isEdit ? 'editado' : 'criado', user: currentUser, date: new Date().toISOString() };
+        if (isFirebaseActive) {
+            if (isEdit) { db.collection('transactions').doc(id).update(data).then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } }); }
+            else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); data.history = [historyEntry]; db.collection('transactions').add(data).then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } }); }
+        } else {
+            if (isEdit) { const idx = transactions.findIndex(t => t.id === id); if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; }
+            else { data.id = Date.now().toString(); data.history = [historyEntry]; transactions.push(data); }
+            localStorage.setItem('local_transactions', JSON.stringify(transactions));
+            updateUI();
+            if(!skipReset) { showToast("Salvo Localmente", "success"); resetForm(); }
+        }
+    }
     function handleQuickFormSubmit(e) {
         e.preventDefault();
-        
-        const cardName = document.getElementById('quick-card-select').value;
-        if (!cardName) {
-            showToast("Selecione um cartão", "error");
-            return;
-        }
-
-        const data = {
+        const baseData = {
             description: document.getElementById('quick-desc').value,
-            amount: -parseFloat(document.getElementById('quick-amount').value), 
+            amount: -parseFloat(document.getElementById('quick-amount').value),
             type: 'expense',
             category: document.getElementById('quick-category').value,
             date: document.getElementById('quick-date').value,
-            card: cardName
+            card: document.getElementById('quick-card-select').value,
+            status: 'pending',
+            createdBy: currentUser
         };
-
-        submitTransaction(data, false, null, true); 
+        const installmentCount = parseInt(document.getElementById('quick-installments').value) || 1;
+        if (installmentCount > 1) { createInstallments(baseData, installmentCount); }
+        else { submitSingleTransaction(baseData, false); document.getElementById('quick-card-form').reset(); document.getElementById('quick-date').valueAsDate = new Date(); }
     }
-
-    function submitTransaction(data, isEdit, id, isQuick = false) {
-        const historyAction = isEdit ? 'editado' : 'criado';
-        const historyEntry = { action: historyAction, user: currentUser, date: new Date().toISOString() };
-
-        if (isFirebaseActive) {
-            if (isEdit) {
-                db.collection('transactions').doc(id).get().then(doc => {
-                    const oldData = doc.data();
-                    const newHistory = (oldData.history || []);
-                    newHistory.push(historyEntry);
-                    db.collection('transactions').doc(id).update({ ...data, history: newHistory }).then(() => { 
-                        showToast("Transação atualizada!", "success"); 
-                        if(!isQuick) resetForm(); else document.getElementById('quick-card-form').reset();
+    // Função Atualizada com Lógica de Excluir Parcela ou Série
+    function openCardHistory(cardName) {
+        const filterVal = document.getElementById('month-filter').value;
+        const cardTransactions = transactions.filter(t => { const matchCard = t.card === cardName; const matchDate = filterVal === 'all' || (t.date && t.date.startsWith(filterVal)); return matchCard && matchDate; }).sort((a,b) => new Date(b.date) - new Date(a.date));
+        const list = document.getElementById('card-history-list');
+        list.innerHTML = "";
+        let total = 0;
+        if(cardTransactions.length === 0) { list.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Sem movimentos.</td></tr>"; }
+        else {
+            cardTransactions.forEach(t => {
+                total += t.amount;
+                const safeDesc = t.description.replace(/'/g, "\\'");
+                list.innerHTML += `<tr><td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${t.description}</td><td><span class="badge" style="background:#e5e7eb; color:#374151">${t.category || '-'}</span></td><td style="font-weight:bold; color: var(--danger);">${formatCurrency(t.amount)}</td><td style="text-align:center;"><button class="action-btn" onclick="closeModal('card-history-modal'); editTransaction('${t.id}')" title="Editar"><i class="fas fa-edit"></i></button> <button class="action-btn delete" onclick="deleteOrDeleteSeries('${t.id}', '${cardName}', '${safeDesc}')" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+        }
+        document.getElementById('history-modal-title').innerHTML = `<span>Extrato: ${cardName}</span> <button class="action-btn" onclick="closeModal('card-history-modal')"><i class="fas fa-times"></i></button>`;
+        document.getElementById('history-modal-subtitle').innerText = `Referência: ${filterVal === 'all' ? 'Todos os tempos' : filterVal}`;
+        document.getElementById('history-modal-total').innerText = formatCurrency(total);
+        document.getElementById('card-history-modal').classList.add('open');
+    }
+    
+    // NOVA FUNÇÃO: Excluir Parcela ou Série
+    function deleteOrDeleteSeries(id, cardName, description) {
+        // Verifica se é uma parcela pelo padrão (x/y)
+        const isInstallment = description.match(/(.*)\s\(\d+\/\d+\)/);
+        
+        if (isInstallment) {
+            const baseDesc = isInstallment[1].trim();
+            // 1. Pergunta se quer apagar apenas esta
+            if (confirm(`APAGAR APENAS esta parcela?\n\n${description}\n\n(Clique em Cancelar para ver a opção de apagar a SÉRIE INTEIRA)`)) {
+                deleteTransaction(id);
+                return;
+            }
+            // 2. Se clicou em cancelar, pergunta se quer apagar a série
+            if (confirm(`APAGAR TODAS as parcelas de:\n${baseDesc}\n\nIsso irá excluir ${baseDesc} (1/x), (2/x), etc.`)) {
+                // Encontrar todas as transações que começam com o nome base
+                const seriesItems = transactions.filter(t => t.description.startsWith(baseDesc));
+                if(seriesItems.length === 0) {
+                    showToast("Nenhum item encontrado para excluir.", "error");
+                    return;
+                }
+                
+                if (isFirebaseActive) {
+                    const batch = db.batch();
+                    seriesItems.forEach(t => batch.delete(db.collection('transactions').doc(t.id)));
+                    batch.commit().then(() => {
+                        showToast(`Série completa excluída (${seriesItems.length} itens)`, "success");
+                        openCardHistory(cardName); // Atualiza modal
                     });
-                });
-            } else {
-                data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                data.createdBy = currentUser;
-                data.history = [historyEntry];
-                db.collection('transactions').add(data).then(() => { 
-                    showToast("Salvo na nuvem!", "success"); 
-                    if(!isQuick) resetForm(); else document.getElementById('quick-card-form').reset();
-                }).catch(err => {
-                    showToast("Erro ao salvar: " + err.message, "error");
-                });
+                } else {
+                    transactions = transactions.filter(t => !t.description.startsWith(baseDesc));
+                    localStorage.setItem('local_transactions', JSON.stringify(transactions));
+                    updateUI();
+                    showToast(`Série completa excluída (${seriesItems.length} itens)`, "success");
+                    openCardHistory(cardName);
+                }
             }
         } else {
-            // Lógica Local
-            if (isEdit) {
-                const index = transactions.findIndex(t => t.id === id);
-                if (index !== -1) {
-                    transactions[index] = { ...transactions[index], ...data };
-                    transactions[index].history.push(historyEntry);
-                }
-            } else {
-                data.id = Date.now().toString(); // ID fake para local
-                data.createdBy = currentUser;
-                data.history = [historyEntry];
-                transactions.push(data);
+            // Não é parcela, apaga normal
+            if(confirm(`Excluir "${description}"?`)) {
+                deleteTransaction(id);
             }
-            saveLocalData();
-            showToast("Salvo localmente!", "success");
-            if(!isQuick) resetForm(); else document.getElementById('quick-card-form').reset();
         }
     }
 
+    function markAsPaid(id) {
+        const idx = transactions.findIndex(t => t.id === id);
+        if (idx !== -1) {
+            transactions[idx].status = 'paid';
+            transactions[idx].history = transactions[idx].history || [];
+            transactions[idx].history.push({ action: 'pago', user: currentUser, date: new Date().toISOString() });
+            if (isFirebaseActive) { db.collection('transactions').doc(id).update({ status: 'paid', history: transactions[idx].history }); }
+            else { localStorage.setItem('local_transactions', JSON.stringify(transactions)); updateUI(); }
+            showToast("Conta marcada como paga!", "success");
+        }
+    }
+    function markGroupAsPaid(cardName) {
+        if(confirm(`Pagar TODAS as pendências do cartão ${cardName}?`)) {
+            const pendingItems = transactions.filter(t => t.card === cardName && t.status === 'pending');
+            if(pendingItems.length === 0) { showToast("Nenhum item pendente.", "error"); return; }
+            if (isFirebaseActive) {
+                const batch = db.batch();
+                pendingItems.forEach(t => {
+                    const newHistory = [...(t.history||[]), { action: 'pago', user: currentUser, date: new Date().toISOString() }];
+                    batch.update(db.collection('transactions').doc(t.id), { status: 'paid', history: newHistory });
+                });
+                batch.commit().then(() => { showToast(`${pendingItems.length} contas pagas!`, "success"); });
+            } else {
+                pendingItems.forEach(t => { t.status = 'paid'; if(!t.history) t.history=[]; t.history.push({ action: 'pago', user: currentUser, date: new Date().toISOString() }); });
+                localStorage.setItem('local_transactions', JSON.stringify(transactions));
+                updateUI();
+                showToast(`${pendingItems.length} contas pagas!`, "success");
+            }
+        }
+    }
+    function deleteTransaction(id) {
+        if(confirm("Excluir permanentemente?")) {
+            if(isFirebaseActive) db.collection('transactions').doc(id).delete();
+            else { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('local_transactions', JSON.stringify(transactions)); updateUI(); }
+        }
+    }
     function editTransaction(id) {
         const t = transactions.find(x => x.id === id);
         if (!t) return;
@@ -725,215 +510,200 @@
         document.getElementById('desc').value = t.description;
         document.getElementById('amount').value = Math.abs(t.amount);
         document.getElementById('type').value = t.amount > 0 ? 'income' : 'expense';
-        handleTypeChange();
         document.getElementById('category').value = t.category;
         document.getElementById('date').value = t.date;
         document.getElementById('card-select').value = t.card || "";
-        document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editar Transação';
+        document.getElementById('status').value = t.status || 'paid';
+        document.getElementById('installments').value = 1;
+        handleTypeChange();
+        document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editar';
         document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Atualizar';
         document.getElementById('cancel-btn').style.display = 'flex';
+        switchTab('geral');
         window.scrollTo(0, 0);
     }
-
     function resetForm() {
         document.getElementById('transaction-form').reset();
         document.getElementById('edit-id').value = "";
         document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('installments').value = 1;
         handleTypeChange();
         document.getElementById('form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Nova Transação';
-        document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Salvar Transação';
+        document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Salvar';
         document.getElementById('cancel-btn').style.display = 'none';
     }
-
-    function deleteTransaction(id) {
-        if(confirm("Tem certeza que deseja excluir esta transação?")) {
-            if (isFirebaseActive) {
-                db.collection('transactions').doc(id).delete().then(() => showToast("Excluído.", "success"));
-            } else {
-                transactions = transactions.filter(t => t.id !== id);
-                saveLocalData();
-                showToast("Excluído (Local)", "success");
-            }
+    function populateMonthFilter() {
+        const sel = document.getElementById('month-filter');
+        sel.innerHTML = '<option value="all">Todos os Meses</option>';
+        const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const today = new Date();
+        for(let i = -2; i < 6; i++) {
+            const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+            const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            const label = `${months[d.getMonth()]} ${d.getFullYear()}`;
+            sel.innerHTML += `<option value="${val}">${label}</option>`;
         }
+        const currentVal = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+        sel.value = currentVal;
     }
-
-    // --- RENDERIZAÇÃO DA UI ---
+    function getFilteredTransactions() {
+        const filterVal = document.getElementById('month-filter').value;
+        if (filterVal === 'all') return transactions;
+        return transactions.filter(t => t.date && t.date.startsWith(filterVal));
+    }
     function updateUI() {
-        const list = document.getElementById('transactions-list');
+        const filtered = getFilteredTransactions();
+        let income = 0, expensePaid = 0;
+        transactions.forEach(t => { const val = t.amount; if (val > 0) { income += val; } else { if (t.status === 'paid') { expensePaid += val; } } });
+        document.getElementById('display-income').innerText = formatCurrency(income);
+        document.getElementById('display-expense').innerText = formatCurrency(Math.abs(expensePaid));
+        const realBalance = income + expensePaid;
+        document.getElementById('display-balance').innerText = formatCurrency(realBalance);
+        const pendingThisMonth = transactions.filter(t => { const isPending = t.type === 'expense' && t.status === 'pending'; const matchDate = filtered.includes(t); return isPending && matchDate; });
+        const pendingTotalMonth = pendingThisMonth.reduce((acc, t) => acc + t.amount, 0);
+        document.getElementById('display-pending').innerText = formatCurrency(Math.abs(pendingTotalMonth));
+        renderTableGrouped(filtered, 'transactions-list');
+        renderPendingList(pendingThisMonth);
+        renderPaidList(filtered);
+        updateCardsView(filtered);
+        updateChart(filtered);
+        renderAuditLog();
+    }
+    function renderTableGrouped(data, elementId) {
+        const list = document.getElementById(elementId);
         list.innerHTML = "";
-        let inc = 0, exp = 0;
-        const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        sorted.forEach(t => {
+        const groupedCards = {};
+        const otherItems = [];
+        data.forEach(t => { if (t.card) { if (!groupedCards[t.card]) groupedCards[t.card] = []; groupedCards[t.card].push(t); } else { otherItems.push(t); } });
+        for (const [cardName, items] of Object.entries(groupedCards)) {
+            const total = items.reduce((acc, curr) => acc + curr.amount, 0);
+            const hasPending = items.some(i => i.status === 'pending');
+            const rowClass = hasPending ? 'pending-row' : '';
+            const style = getCardStyle(cardName);
+            list.innerHTML += `<tr class="${rowClass}"><td><i class="fas ${style.icon}" style="color:${style.color}; margin-right:5px;"></i> ${cardName}</td><td><strong>${items.length} compra(s)</strong><div style="font-size:0.75rem; color:var(--text-light);">Agrupado</div></td><td>-</td><td>${hasPending ? '<span class="badge badge-expense">Pendente</span>' : '<span class="badge badge-paid">Pago</span>'}</td><td class="amount-val" style="font-weight:700; color: var(--danger);">${formatCurrency(total)}</td><td style="text-align:center;"><button class="action-btn" onclick="openCardHistory('${cardName}')" title="Ver Detalhes"><i class="fas fa-eye"></i></button></td></tr>`;
+        }
+        otherItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+        otherItems.forEach(t => {
             const val = t.amount;
-            if (val > 0) inc += val; else exp += val;
-            const badgeClass = val > 0 ? 'badge-income' : 'badge-expense';
-            const dateFmt = new Date(t.date).toLocaleDateString('pt-BR');
-            
-            let cardBadgeHtml = '';
-            if (t.card) {
-                const style = getCardStyle(t.card);
-                cardBadgeHtml = `<br><span class="badge-card" style="background-color: ${style.color};"><i class="fas ${style.icon}"></i> ${t.card}</span>`;
-            }
-            
-            list.innerHTML += `
-                <tr>
-                    <td>${dateFmt} ${cardBadgeHtml}</td>
-                    <td>
-                        <div style="font-weight: 500;">${t.description}</div>
-                        <div style="font-size:0.75rem; color:var(--text-light);">por: ${t.createdBy || '?'}</div>
-                    </td>
-                    <td><span class="badge ${badgeClass}">${t.category}</span></td>
-                    <td style="font-weight:700; color: ${val>0 ? 'var(--success)':'var(--danger)'}">${formatCurrency(val)}</td>
-                    <td style="text-align: center;">
-                        <div class="actions-cell" style="justify-content: center;">
-                            <button class="action-btn" onclick="editTransaction('${t.id}')" title="Editar"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete" onclick="deleteTransaction('${t.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>`;
+            const isPaid = t.status === 'paid';
+            const isIncome = val > 0;
+            const rowClass = (!isPaid && !isIncome) ? 'pending-row' : (isPaid ? 'paid-row' : '');
+            const statusBadge = isIncome ? '<span class="badge badge-income">Receita</span>' : (isPaid ? '<span class="badge badge-paid">Pago</span>' : '<span class="badge badge-expense">Pendente</span>');
+            list.innerHTML += `<tr class="${rowClass}"><td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td><div style="font-weight:500;">${t.description}</div><div style="font-size:0.75rem; color:var(--text-light);">por: ${t.createdBy || '?'}</div></td><td>${t.category}</td><td>${statusBadge}</td><td class="amount-val" style="font-weight:700; color: ${isIncome?'var(--success)':'var(--danger)'}">${formatCurrency(val)}</td><td style="text-align:center;">${!isIncome && !isPaid ? `<button class="btn-pay" onclick="markAsPaid('${t.id}')"><i class="fas fa-check"></i></button>` : ''}<button class="action-btn" onclick="editTransaction('${t.id}')"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteTransaction('${t.id}')"><i class="fas fa-trash"></i></button></td></tr>`;
         });
-
-        document.getElementById('display-income').innerText = formatCurrency(inc);
-        document.getElementById('display-expense').innerText = formatCurrency(Math.abs(exp));
-        document.getElementById('display-balance').innerText = formatCurrency(inc + exp);
-
-        updateCardsView(sorted);
-        updateChart(transactions);
-        renderGlobalLog(transactions);
     }
-
-    function updateCardsView(data) {
-        const container = document.getElementById('cards-summary-container');
-        const list = document.getElementById('cards-list');
-        container.innerHTML = ""; list.innerHTML = "";
-        const cardTotals = {};
-        const cardTransactions = [];
-
+    function renderPendingList(data) {
+        const list = document.getElementById('pending-list');
+        list.innerHTML = "";
+        const cardGroups = {};
+        const singles = [];
         data.forEach(t => {
-            if (t.card && t.amount < 0) {
-                const val = Math.abs(t.amount);
-                cardTotals[t.card] = (cardTotals[t.card] || 0) + val;
-                cardTransactions.push(t);
-            }
+            if (t.card) { if(!cardGroups[t.card]) cardGroups[t.card] = { items: [], total: 0, minDate: t.date }; cardGroups[t.card].items.push(t); cardGroups[t.card].total += t.amount; if(new Date(t.date) < new Date(cardGroups[t.card].minDate)) cardGroups[t.card].minDate = t.date; }
+            else { singles.push(t); }
         });
-
-        if (Object.keys(cardTotals).length === 0) container.innerHTML = "<p style='color:var(--text-light); font-style:italic;'>Nenhum gasto em cartão registrado.</p>";
-        else {
-            for (const [card, total] of Object.entries(cardTotals)) {
-                const style = getCardStyle(card);
-                container.innerHTML += `
-                    <div class="card-item" style="background-color: ${style.color};">
-                        <div style="display:flex; align-items:center;">
-                            <i class="fas ${style.icon} card-item-icon"></i>
-                            <div>
-                                <div style="font-size:0.85rem; opacity:0.9; text-transform:uppercase;">Fatura Atual</div>
-                                <strong style="font-size: 1.1rem;">${card}</strong>
-                            </div>
-                        </div>
-                        <div style="font-weight: 700; font-size: 1.3rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${formatCurrency(-total)}</div>
-                    </div>
-                `;
-            }
-        }
-
-        cardTransactions.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            const style = getCardStyle(t.card);
-            list.innerHTML += `
-                <tr>
-                    <td><span class="badge-card" style="background-color: ${style.color};"><i class="fas ${style.icon}"></i> ${t.card}</span></td>
-                    <td>${new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                    <td>${t.description}</td>
-                    <td style="color: var(--danger); font-weight: 600;">${formatCurrency(t.amount)}</td>
-                    <td style="text-align: center;">
-                        <button class="action-btn" onclick="editTransaction('${t.id}')"><i class="fas fa-edit"></i></button>
-                    </td>
-                </tr>`;
+        Object.keys(cardGroups).forEach(cardName => {
+            const group = cardGroups[cardName];
+            const style = getCardStyle(cardName);
+            list.innerHTML += `<tr class="pending-row"><td style="font-weight:bold;">${new Date(group.minDate).toLocaleDateString('pt-BR')}</td><td><i class="fas ${style.icon}" style="color:${style.color}; margin-right:5px;"></i> <strong>Fatura: ${cardName}</strong><div style="font-size:0.7rem; color:var(--text-light);">${group.items.length} compra(s)</div></td><td style="font-weight:600; color:var(--danger);">${formatCurrency(group.total)}</td><td><button class="btn-pay" style="width:100%; justify-content:center;" onclick="markGroupAsPaid('${cardName}')"><i class="fas fa-check"></i> Pagar Fatura</button></td></tr>`;
+        });
+        singles.sort((a, b) => new Date(a.date) - new Date(b.date));
+        singles.forEach(t => {
+            const isLate = new Date(t.date) < new Date();
+            const dateColor = isLate ? 'var(--danger)' : 'var(--text-main)';
+            const fontWeight = isLate ? 'bold' : 'normal';
+            list.innerHTML += `<tr class="pending-row"><td style="color:${dateColor}; font-weight:${fontWeight}">${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${t.description}</td><td style="font-weight:600;">${formatCurrency(t.amount)}</td><td><button class="btn-pay" style="width:100%; justify-content:center;" onclick="markAsPaid('${t.id}')"><i class="fas fa-check"></i> Pagar</button></td></tr>`;
+        });
+        if (Object.keys(cardGroups).length === 0 && singles.length === 0) { list.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">Tudo em dia! Nenhuma conta pendente neste mês.</td></tr>`; }
+    }
+    function renderPaidList(filteredData) {
+        const list = document.getElementById('paid-list');
+        list.innerHTML = "";
+        const paidItems = filteredData.filter(t => t.status === 'paid' && t.amount < 0).sort((a,b) => new Date(b.date) - new Date(a.date));
+        if(paidItems.length === 0) { list.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-light); font-size:0.8rem">Nenhuma conta paga neste período.</td></tr>`; return; }
+        paidItems.forEach(t => {
+            const payer = t.history && t.history.length > 0 ? t.history[t.history.length-1].user : '-';
+            const style = t.card ? getCardStyle(t.card) : null;
+            const iconHtml = t.card ? `<i class="fas ${style.icon}" style="color:${style.color}; margin-right:5px;"></i>` : '';
+            list.innerHTML += `<tr class="paid-row"><td>${new Date(t.date).toLocaleDateString('pt-BR')}</td><td>${iconHtml}${t.description}</td><td style="font-weight:600; color:var(--success);">${formatCurrency(t.amount)}</td><td><span class="badge badge-paid">${payer}</span></td></tr>`;
         });
     }
-
-    function renderGlobalLog(data) {
-        const container = document.getElementById('global-log-list');
-        container.innerHTML = "";
-        
+    function renderAuditLog() {
+        const list = document.getElementById('audit-list');
+        list.innerHTML = "";
         let allLogs = [];
-        data.forEach(t => {
-            if (t.history) {
-                t.history.forEach(log => {
-                    allLogs.push({
-                        ...log,
-                        relatedDesc: t.description,
-                        relatedValue: t.amount
-                    });
-                });
-            }
-        });
-
+        transactions.forEach(t => { if (t.history && Array.isArray(t.history)) { t.history.forEach(log => { allLogs.push({ date: log.date, user: log.user, action: log.action, desc: t.description, amount: t.amount }); }); } });
         allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        if (allLogs.length === 0) {
-            container.innerHTML = "<p style='color:var(--text-light);'>Nenhuma ação registrada.</p>";
-            return;
-        }
-
+        if(allLogs.length === 0) { list.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:20px;'>Nenhum registro.</td></tr>"; return; }
         allLogs.forEach(log => {
             const dateObj = new Date(log.date);
             const formattedDate = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            
-            container.innerHTML += `
-                <div class="log-item">
-                    <div class="log-info">
-                        <strong>${log.action.toUpperCase()}</strong>
-                        <div style="font-size: 0.85rem; margin-top: 4px; color: var(--text-light);">
-                            Item: "${log.relatedDesc}" (${formatCurrency(log.relatedValue)})
-                        </div>
-                    </div>
-                    <div class="log-meta">
-                        <div><i class="fas fa-user"></i> ${log.user}</div>
-                        <div>${formattedDate}</div>
-                    </div>
-                </div>
-            `;
+            const actionColor = log.action === 'criado' ? 'var(--success)' : (log.action === 'editado' ? 'var(--warning)' : (log.action === 'pago' ? 'var(--primary)' : 'var(--danger)'));
+            list.innerHTML += `<tr><td>${formattedDate}</td><td><strong>${log.user || 'Sistema'}</strong></td><td style="color:${actionColor}; font-weight:bold; text-transform:uppercase;">${log.action}</td><td>${log.desc}</td><td style="color: ${log.amount > 0 ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(log.amount)}</td></tr>`;
         });
     }
-
-    // --- UTILITÁRIOS ---
+    function updateCardsView(data) {
+        const container = document.getElementById('cards-summary-container');
+        container.innerHTML = "";
+        const cardTotals = {};
+        data.forEach(t => { if (t.card && t.amount < 0) { cardTotals[t.card] = (cardTotals[t.card] || 0) + t.amount; } });
+        if (Object.keys(cardTotals).length === 0) { container.innerHTML = "<p style='text-align:center; color:var(--text-light);'>Sem gastos neste mês.</p>"; return; }
+        for (const [card, total] of Object.entries(cardTotals)) {
+            const style = getCardStyle(card);
+            container.innerHTML += `<div class="card-item" style="background-color: ${style.color};" onclick="openCardHistory('${card}')"><div style="display:flex; align-items:center;"><i class="fas ${style.icon} card-item-icon"></i><div><strong style="font-size:1.1rem;">${card}</strong><div style="font-size:0.8rem; opacity:0.9;">Fatura do Mês</div></div></div><div style="font-weight:700; font-size:1.2rem;">${formatCurrency(total)}</div></div>`;
+        }
+    }
+    function updateChart(data) {
+        const ctx = document.getElementById('financeChart').getContext('2d');
+        const expenses = data.filter(t => t.type === 'expense' || t.amount < 0);
+        const totals = {};
+        expenses.forEach(t => { const val = Math.abs(t.amount); totals[t.category] = (totals[t.category] || 0) + val; });
+        if (chartInstance) chartInstance.destroy();
+        const hasData = Object.keys(totals).length > 0;
+        chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: hasData ? Object.keys(totals) : ['Sem dados'], datasets: [{ data: hasData ? Object.values(totals) : [1], backgroundColor: hasData ? ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#6366f1'] : ['#e5e7eb'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-light') } } } } });
+    }
+    function getCardStyle(name) {
+        const key = Object.keys(cardBrands).find(k => name.toLowerCase().includes(k.toLowerCase()));
+        return cardBrands[key] || cardBrands['default'];
+    }
+    function formatCurrency(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function handleTypeChange() {
+        const type = document.getElementById('type').value;
+        document.getElementById('card-group').style.display = type === 'expense' ? 'block' : 'none';
+        const statusSel = document.getElementById('status');
+        if (type === 'expense') { if(statusSel.value === 'paid') statusSel.value = 'pending'; } else { statusSel.value = 'paid'; }
+        updateCategories();
+    }
     function updateCategories() {
         const type = document.getElementById('type').value;
         const select = document.getElementById('category');
         select.innerHTML = categories[type].map(c => `<option value="${c}">${c}</option>`).join('');
     }
-
-    function formatCurrency(v) { 
-        return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); 
-    }
-    
     function switchTab(tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('[id^="tab-"]').forEach(d => d.style.display = 'none');
-        
-        // Encontra o botão clicado (pelo event ou pelo seletor)
         const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.onclick.toString().includes(`'${tab}'`));
         if(targetBtn) targetBtn.classList.add('active');
-        
         document.getElementById(`tab-${tab}`).style.display = 'block';
+        updateUI();
     }
-
     function toggleTheme() {
         const body = document.body;
-        if (body.getAttribute('data-theme') === 'dark') {
-            body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light');
-        } else {
-            body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark');
-        }
+        if (body.getAttribute('data-theme') === 'dark') { body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
+        else { body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
         updateThemeIcon();
+        updateChart(getFilteredTransactions());
     }
-    
     function updateThemeIcon() {
         const icon = document.getElementById('theme-icon');
         if (document.body.getAttribute('data-theme') === 'dark') { icon.className = 'fas fa-sun'; } else { icon.className = 'fas fa-moon'; }
     }
-
+    function updateStatus(status) {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        dot.className = 'status-dot';
+        if (status === 'online') { dot.classList.add('online'); text.innerText = "Nuvem"; }
+        else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Offline"; }
+    }
     function setUser() {
         const input = document.getElementById('username-input');
         if (input.value.trim()) {
@@ -943,180 +713,71 @@
             closeModal('user-modal');
         }
     }
-    
-    function changeUser() { 
-        document.getElementById('username-input').value = ""; 
-        document.getElementById('user-modal').classList.add('open'); 
-    }
-    
+    function changeUser() { document.getElementById('username-input').value = ""; document.getElementById('user-modal').classList.add('open'); }
+    function updateUserDisplay() { document.getElementById('user-display').innerHTML = `<i class="fas fa-user"></i> ${currentUser}`; }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-    
     function showToast(msg, type = 'success') {
         const toast = document.getElementById('toast');
         const icon = document.getElementById('toast-icon');
         const text = document.getElementById('toast-msg');
-        
-        toast.className = `toast ${type}`;
+        toast.className = `toast ${type} show`;
         text.innerText = msg;
-        
-        if(type === 'success') icon.className = 'fas fa-check-circle';
-        else if(type === 'error') icon.className = 'fas fa-exclamation-circle';
-        else icon.className = 'fas fa-info-circle';
-
-        toast.classList.add('show');
+        icon.className = type === 'success' ? 'fas fa-check-circle' : (type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
-
-    function updateChart(data) {
-        const ctx = document.getElementById('financeChart').getContext('2d');
-        const expenses = data.filter(t => t.type === 'expense' || t.amount < 0);
-        const totals = {};
-        expenses.forEach(t => { const val = Math.abs(t.amount); totals[t.category] = (totals[t.category] || 0) + val; });
-        
-        if (chartInstance) chartInstance.destroy();
-        
-        const hasData = Object.keys(totals).length > 0;
-        
-        chartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: { 
-                labels: hasData ? Object.keys(totals) : ['Sem dados'],
-                datasets: [{ 
-                    data: hasData ? Object.values(totals) : [1],
-                    backgroundColor: hasData ? ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#6366f1'] : ['#e5e7eb'], 
-                    borderWidth: 0 
-                }] 
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { 
-                    legend: { position: 'right', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-light') } } 
-                } 
-            }
-        });
+    function updateCardSelect() {
+        const mainSelect = document.getElementById('card-select');
+        const quickSelect = document.getElementById('quick-card-select');
+        const optionsHTML = cards.map(c => `<option value="${c}">${c}</option>`).join('');
+        mainSelect.innerHTML = '<option value="">À vista / Débito / Pix</option>' + optionsHTML;
+        quickSelect.innerHTML = '<option value="">Selecione...</option>' + optionsHTML;
     }
-
-    // --- RELATÓRIOS ---
+    function openCardManager() {
+        const list = document.getElementById('card-manager-list');
+        list.innerHTML = "";
+        cards.forEach((card, index) => {
+            const style = getCardStyle(card);
+            list.innerHTML += `<div style="background:var(--bg-color); padding:10px; margin-bottom:5px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;"><span><i class="fas ${style.icon}" style="color:${style.color}; margin-right:5px;"></i> ${card}</span><button class="action-btn delete" onclick="deleteCard(${index})"><i class="fas fa-trash"></i></button></div>`;
+        });
+        document.getElementById('card-modal').classList.add('open');
+    }
+    function addCard() {
+        const name = document.getElementById('new-card-name').value.trim();
+        if (!name || cards.includes(name)) return;
+        cards.push(name);
+        saveCards();
+        document.getElementById('new-card-name').value = "";
+        openCardManager();
+        showToast("Cartão adicionado");
+    }
+    function deleteCard(index) {
+        if(confirm("Excluir este cartão?")) {
+            cards.splice(index, 1);
+            saveCards();
+            openCardManager();
+        }
+    }
+    function saveCards() {
+        if(isFirebaseActive) db.collection('settings').doc('config').set({ cards: cards });
+        else { localStorage.setItem('mock_cards', JSON.stringify(cards)); }
+        updateCardSelect();
+        updateUI();
+    }
     function generatePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
-        let totalInc = 0, totalExp = 0;
-        const userExpenses = {};
-        
-        transactions.forEach(t => {
-            if (t.amount > 0) totalInc += t.amount;
-            else {
-                totalExp += t.amount;
-                const val = Math.abs(t.amount);
-                const user = t.createdBy || 'Desconhecido';
-                userExpenses[user] = (userExpenses[user] || 0) + val;
-            }
-        });
-
-        doc.setFontSize(18);
-        doc.text("Relatório Financeiro - Finanças Ultimate", 14, 20);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} por ${currentUser}`, 14, 26);
-
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        doc.text("Resumo Financeiro", 14, 38);
-        doc.setFontSize(10);
-        doc.text(`Total Entradas: ${formatCurrency(totalInc)}`, 14, 46);
-        doc.text(`Total Saídas:   ${formatCurrency(totalExp)}`, 14, 52);
-        
-        const balance = totalInc + totalExp;
-        doc.setTextColor(balance >= 0 ? 0 : 200, balance >= 0 ? 100 : 0, 0);
-        doc.text(`Saldo Final:     ${formatCurrency(balance)}`, 14, 58);
-        doc.setTextColor(0);
-
-        let yPos = 68;
-        doc.setFontSize(12);
-        doc.text("Gastos por Usuário", 14, yPos);
-        yPos += 8;
-        doc.setFontSize(10);
-        for (const [user, val] of Object.entries(userExpenses)) {
-            doc.text(`- ${user}: ${formatCurrency(val)}`, 20, yPos);
-            yPos += 6;
-        }
-
-        const tableData = [];
-        [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            tableData.push([
-                new Date(t.date).toLocaleDateString('pt-BR'),
-                t.description.substring(0, 30),
-                t.createdBy || '-',
-                t.card || '-',
-                formatCurrency(t.amount)
-            ]);
-        });
-
-        doc.autoTable({
-            startY: yPos + 10,
-            head: [['Data', 'Descrição', 'Usuário', 'Cartão', 'Valor']],
-            body: tableData,
-            theme: 'grid',
-            headStyles: { fillColor: [79, 70, 229] }
-        });
-
-        doc.save("relatorio_financeiro.pdf");
+        doc.text("Relatório Financeiro", 14, 20);
+        doc.setFontSize(10); doc.text(`Gerado por ${currentUser} em ${new Date().toLocaleDateString()}`, 14, 26);
+        const tableData = transactions.map(t => [new Date(t.date).toLocaleDateString('pt-BR'), t.description.substring(0, 25), t.status === 'paid' ? 'Pago' : 'Pendente', formatCurrency(t.amount)]);
+        doc.autoTable({ startY: 35, head: [['Data', 'Descrição', 'Status', 'Valor']], body: tableData, theme: 'grid', headStyles: { fillColor: [79, 70, 229] } });
+        doc.save("financas_ultima.pdf");
     }
-
     function exportToExcel() {
-        let totalInc = 0, totalExp = 0;
-        const userExpenses = {};
-        
-        transactions.forEach(t => {
-            if (t.amount > 0) totalInc += t.amount;
-            else {
-                totalExp += t.amount;
-                const val = Math.abs(t.amount);
-                const user = t.createdBy || 'Desconhecido';
-                userExpenses[user] = (userExpenses[user] || 0) + val;
-            }
-        });
-
         const wb = XLSX.utils.book_new();
-        
-        const summaryData = [
-            ["RELATÓRIO FINANCEIRO - FINANÇAS ULTIMATE", ""],
-            ["Gerado por", currentUser],
-            ["Data", new Date().toLocaleDateString('pt-BR')],
-            [""],
-            ["RESUMO FINANCEIRO", ""],
-            ["Total Entradas", totalInc],
-            ["Total Saídas", totalExp],
-            ["Saldo Final", totalInc + totalExp],
-            [""],
-            ["GASTOS POR USUÁRIO", ""]
-        ];
-        
-        for (const [user, val] of Object.entries(userExpenses)) {
-            summaryData.push([user, val]);
-        }
-
-        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(wb, wsSummary, "Resumo");
-
-        const detailedData = transactions.map(t => ({
-            Data: new Date(t.date).toLocaleDateString('pt-BR'),
-            Descrição: t.description,
-            Categoria: t.category,
-            Usuário: t.createdBy || '-',
-            Cartão: t.card || '-',
-            Valor: t.amount
-        }));
-
-        const wsDetails = XLSX.utils.json_to_sheet(detailedData);
-        XLSX.utils.book_append_sheet(wb, wsDetails, "Transações");
-
-        XLSX.writeFile(wb, "finanças_ultima.xlsx");
+        const ws = XLSX.utils.json_to_sheet(transactions.map(t => ({ Data: t.date, Descricao: t.description, Categoria: t.category, Usuario: t.createdBy, Cartao: t.card || '', Status: t.status, Valor: t.amount })));
+        XLSX.utils.book_append_sheet(wb, ws, "Transacoes");
+        XLSX.writeFile(wb, "financas_ultima.xlsx");
     }
 </script>
 </body>
 </html>
-
-
