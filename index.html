@@ -204,12 +204,15 @@
     </div>
 </div>
 <div id="toast" class="toast"><i id="toast-icon" class="fas"></i><span id="toast-msg">Mensagem</span></div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<!-- Scripts Externos com DEFER para não travar a abertura se não houver internet -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" defer></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" defer></script>
+
 <script>
     const firebaseConfig = { apiKey: "AIzaSyCdm331rhwKzLpfM3u5jn48-c_bthiygRw", authDomain: "finances2-efd87.firebaseapp.com", projectId: "finances2-efd87", storageBucket: "finances2-efd87.firebasestorage.app", messagingSenderId: "645175309303", appId: "1:645175309303:web:a5eca0bd0eec467b9234f2" };
     let db, transactions = [], cards = [], chartInstance = null, currentUser = "", isFirebaseActive = false;
@@ -217,28 +220,70 @@
     const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
     
     document.addEventListener('DOMContentLoaded', async () => {
+        // 1. CONFIGURAÇÃO INICIAL (RODA MESMO SEM INTERNET)
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
         updateThemeIcon();
         currentUser = localStorage.getItem('currentUser') || "";
         if (currentUser) updateUserDisplay(); else document.getElementById('user-modal').classList.add('open');
+        
+        // 2. CARREGA DADOS LOCAIS IMEDIATAMENTE
         loadLocalData();
+        
         document.getElementById('date').valueAsDate = new Date();
         document.getElementById('quick-date').valueAsDate = new Date();
         updateCategories();
         const quickCatSelect = document.getElementById('quick-category');
         quickCatSelect.innerHTML = categories.expense.map(c => `<option value="${c}">${c}</option>`).join('');
         populateMonthFilter();
-        try {
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            db.enablePersistence().catch(err => console.log("Persistence:", err.code));
-            isFirebaseActive = true;
-            updateStatus('online');
-            listenForData();
-        } catch (e) { console.error("Firebase Error", e); fallbackToOfflineOnly(); }
+        
+        // Listeners dos formulários locais
         document.getElementById('transaction-form').addEventListener('submit', handleMainFormSubmit);
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
         setupNotifications();
+
+        // 3. TENTA CONEXÃO COM FIREBASE (SÓ SE OS SCRIPTS CARREGARAM)
+        // O "defer" nos scripts permite que a página carregue antes.
+        // Se não houver internet, "firebase" será undefined.
+        if (typeof firebase !== 'undefined') {
+            try {
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                
+                // Ativa persistência local do Firebase (fila de sincronização automática)
+                db.enablePersistence().catch(err => {
+                    console.log("Persistência Firebase:", err.code);
+                    if (err.code == 'failed-precondition') {
+                        console.warn('Múltiplas abas abertas.');
+                    } else if (err.code == 'unimplemented') {
+                        console.warn('Browser não suporta persistência.');
+                    }
+                });
+
+                isFirebaseActive = true;
+                updateStatus('online');
+                listenForData(); // Inicia sincronização com a nuvem
+
+                // Ouvintes de conexão
+                window.addEventListener('online', () => {
+                     updateStatus('online');
+                     // Se voltar a internet, podemos tentar sincronizar ou apenas avisar
+                     if(!isFirebaseActive && typeof firebase !== 'undefined') {
+                         // Tenta reconectar se falhou antes
+                         location.reload(); 
+                     }
+                });
+                window.addEventListener('offline', () => {
+                     updateStatus('offline');
+                });
+
+            } catch (e) {
+                console.error("Firebase Error", e);
+                fallbackToOfflineOnly();
+            }
+        } else {
+            // Scripts do Firebase não carregaram (usuário totalmente offline)
+            fallbackToOfflineOnly();
+        }
     });
 
     function loadLocalData() {
@@ -257,7 +302,13 @@
         updateCardSelect();
         updateUI();
     }
-    function fallbackToOfflineOnly() { isFirebaseActive = false; updateStatus('offline'); showToast("Modo Offline", "warning"); }
+    function fallbackToOfflineOnly() { 
+        isFirebaseActive = false; 
+        updateStatus('offline'); 
+        // Não mostra toast de erro imediatamente para não incomodar, 
+        // apenas o status visual muda.
+        console.log("Modo Offline Ativado"); 
+    }
     function setupNotifications() {
         if (!("Notification" in window)) return;
         if (Notification.permission !== "denied") Notification.requestPermission();
@@ -279,6 +330,7 @@
         });
     }
     function listenForData() {
+        if(!db) return;
         db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
             transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
@@ -287,7 +339,6 @@
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
                 let loadedCards = doc.data().cards;
-                // Checagem de tipo para compatibilidade
                 if(loadedCards.length > 0 && typeof loadedCards[0] === 'string') {
                     loadedCards = loadedCards.map(n => ({name: n, closingDay: 25}));
                 }
@@ -615,7 +666,7 @@
         const list = document.getElementById('paid-list');
         list.innerHTML = "";
         const paidItems = filteredData.filter(t => t.status === 'paid' && t.amount < 0).sort((a,b) => new Date(b.date) - new Date(a.date));
-        if(paidItems.length === 0) { list.innerHTML = `<tr><td colspan='4' style='text-align:center; padding:15px; color:var(--text-light); font-size:0.8rem">Nenhuma conta paga neste período.</td></tr>`; return; }
+        if(paidItems.length === 0) { list.innerHTML = `<tr><td colspan='4' style='text-align:center; padding:15px; color:var(--text-light); font-size:0.8rem'>Nenhuma conta paga neste período.</td></tr>`; return; }
         paidItems.forEach(t => {
             const payer = t.history && t.history.length > 0 ? t.history[t.history.length-1].user : '-';
             const style = t.card ? getCardStyle(t.card) : null;
@@ -663,6 +714,10 @@
     }
 
     function updateChart(data) {
+        if (typeof Chart === 'undefined') {
+            // Se estiver offline e o Chart não carregou, esconde o canvas ou mostra msg
+            return; 
+        }
         const ctx = document.getElementById('financeChart').getContext('2d');
         const expenses = data.filter(t => t.type === 'expense' || t.amount < 0);
         const totals = {};
@@ -702,7 +757,7 @@
     function updateStatus(status) {
         const dot = document.getElementById('status-dot'); const text = document.getElementById('status-text'); dot.className = 'status-dot';
         if (status === 'online') { dot.classList.add('online'); text.innerText = "Nuvem"; }
-        else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Offline"; }
+        else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Local"; }
     }
     function setUser() { const input = document.getElementById('username-input'); if (input.value.trim()) { currentUser = input.value.trim(); localStorage.setItem('currentUser', currentUser); updateUserDisplay(); closeModal('user-modal'); } }
     function changeUser() { document.getElementById('username-input').value = ""; document.getElementById('user-modal').classList.add('open'); }
@@ -748,6 +803,7 @@
         updateUI();
     }
     function generatePDF() {
+        if (typeof window.jspdf === 'undefined') { showToast("Biblioteca PDF não carregada (Offline?).", "error"); return; }
         const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("Relatório Financeiro", 14, 20);
         doc.setFontSize(10); doc.text(`Gerado por ${currentUser} em ${new Date().toLocaleDateString()}`, 14, 26);
         const tableData = transactions.map(t => [new Date(t.date).toLocaleDateString('pt-BR'), t.description.substring(0, 25), t.status === 'paid' ? 'Pago' : 'Pendente', formatCurrency(t.amount)]);
@@ -755,6 +811,7 @@
         doc.save("financas_ultima.pdf");
     }
     function exportToExcel() {
+        if (typeof XLSX === 'undefined') { showToast("Biblioteca Excel não carregada (Offline?).", "error"); return; }
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(transactions.map(t => ({ Data: t.date, Descricao: t.description, Categoria: t.category, Usuario: t.createdBy, Cartao: t.card || '', Status: t.status, Valor: t.amount })));
         XLSX.utils.book_append_sheet(wb, ws, "Transacoes");
