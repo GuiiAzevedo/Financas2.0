@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finanças do Casal Ultimate - Pro</title>
     
-    <!-- Configurações PWA (Instalação) -->
+    <!-- Configurações PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="theme-color" content="#4f46e5">
@@ -240,7 +240,10 @@
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyCdm331rhwKzLpfM3u5jn48-c_bthiygRw", authDomain: "finances2-efd87.firebaseapp.com", projectId: "finances2-efd87", storageBucket: "finances2-efd87.firebasestorage.app", messagingSenderId: "645175309303", appId: "1:645175309303:web:a5eca0bd0eec467b9234f2" };
-    let db, transactions = [], cards = [], chartInstance = null, currentUser = "", isFirebaseActive = false;
+    let db, transactions = [], cards = [], chartInstance = null, currentUser = "";
+    // isFirebaseActive indica apenas se os scripts carregaram, não se há internet
+    let isFirebaseActive = false; 
+    
     const cardBrands = { 'Nubank': { icon: 'fa-robot', color: '#8a05be' }, 'Inter': { icon: 'fa-university', color: '#ff7c00' }, 'Caixa': { icon: 'fa-building-columns', color: '#004a8d' }, 'Visa': { icon: 'fa-credit-card', color: '#1a1f71' }, 'Master': { icon: 'fa-credit-card', color: '#eb001b' }, 'Elo': { icon: 'fa-globe', color: '#000000' }, 'Hipercard': { icon: 'fa-layer-group', color: '#b22b2b' }, 'default': { icon: 'fa-credit-card', color: '#6b7280' } };
     const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
     
@@ -264,8 +267,13 @@
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
         setupNotifications();
 
-        // 2. TENTA CONEXÃO COM FIREBASE APÓS PEQUENO DELAY (NÃO BLOQUEIA)
+        // 2. TENTA CONEXÃO COM FIREBASE
         setTimeout(initFirebase, 500);
+        
+        // 3. OUVINTES DE REDE DO NAVEGADOR
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        updateNetworkStatus(); // Check inicial
     });
 
     function loadLocalData() {
@@ -287,7 +295,9 @@
     function initFirebase() {
         if (typeof firebase === 'undefined') {
             console.log("Firebase script not loaded. Running offline.");
-            fallbackToOfflineOnly();
+            // Se não carregou, não tem como tentar reconectar depois sem recarregar a página
+            isFirebaseActive = false;
+            updateStatus('offline');
             return;
         }
 
@@ -295,86 +305,75 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
+            // Tenta habilitar persistência. Se falhar (ex: duas abas), não desliga o app, apenas loga.
             db.enablePersistence({ synchronizeTabs: true })
                 .then(() => {
                     console.log("Firebase persistence enabled");
                     isFirebaseActive = true;
-                    updateStatus('online');
+                    updateNetworkStatus(); // Atualiza status baseado na rede atual
                     listenForData();
                 })
                 .catch((err) => {
-                    console.error("Persistence failed:", err);
-                    if (err.code == 'failed-precondition') {
-                        isFirebaseActive = true;
-                        updateStatus('online');
-                        listenForData();
-                    } else {
-                        fallbackToOfflineOnly();
-                    }
+                    console.error("Persistence warning (non-fatal):", err);
+                    // Mesmo sem persistência de disco, o Firebase funciona online.
+                    // Mas com o SDK v9, a persistência é o que garante o offline.
+                    // Se falhar aqui, vamos tentar usar online anyway, mas avisando que offline pode falhar.
+                    isFirebaseActive = true; 
+                    updateNetworkStatus();
+                    listenForData();
                 });
-
-            window.addEventListener('online', updateNetworkStatus);
-            window.addEventListener('offline', updateNetworkStatus);
 
         } catch (e) {
             console.error("Firebase Init Error", e);
-            fallbackToOfflineOnly();
+            isFirebaseActive = false;
+            updateStatus('offline');
         }
     }
 
     function updateNetworkStatus() {
-        if(!db) return;
-        if(navigator.onLine) {
+        if (!db) return; // Se não existe db, não tem o que fazer.
+
+        if (navigator.onLine) {
             updateStatus('online');
+            // Força uma checagem silenciosa ou apenas deixa o listener do Snapshot lidar com isso
+            console.log("Network is back online. Syncing pending ops...");
         } else {
             updateStatus('syncing'); 
         }
     }
 
-    function fallbackToOfflineOnly() { 
-        isFirebaseActive = false; 
-        updateStatus('offline'); 
-        console.log("Modo Offline Apenas (LocalStorage)"); 
-    }
-
-    function setupNotifications() {
-        if (!("Notification" in window)) return;
-        if (Notification.permission !== "denied") Notification.requestPermission();
-        setInterval(checkReminders, 60000);
-        checkReminders();
-    }
-    function checkReminders() {
-        if (Notification.permission !== "granted") return;
-        const today = new Date(); today.setHours(0,0,0,0);
-        const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-        transactions.forEach(t => {
-            if (t.type === 'expense' && t.status === 'pending' && t.amount < 0) {
-                const tDate = new Date(t.date + 'T00:00:00');
-                const tDateClean = new Date(tDate.getFullYear(), tDate.getMonth(), tDate.getDate());
-                if (tDateClean.getTime() === today.getTime() || tDateClean.getTime() === tomorrow.getTime()) {
-                    new Notification(`Lembrete: ${t.description}`, { body: `Valor: ${formatCurrency(t.amount)}`, icon: 'https://cdn-icons-png.flaticon.com/512/3163/3163478.png' });
-                }
-            }
-        });
-    }
     function listenForData() {
         if(!db) return;
-        db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
-            const source = snapshot.metadata.hasPendingWrites ? 'Local' : 'Server';
-            if(source === 'Local') {
+        
+        // Listener de Transações
+        const unsubscribeTrans = db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
+            // Verifica se os dados são do cache ou do servidor
+            const source = snapshot.metadata.fromCache ? 'Local' : 'Server';
+            const pending = snapshot.metadata.hasPendingWrites;
+
+            if (pending) {
                 document.getElementById('sync-spinner').style.display = 'block';
-            } else {
+                document.getElementById('status-text').innerText = "Enviando...";
+            } else if (source === 'Local' && !pending) {
+                // Está vendo cache, mas não tem nada pendente para escrever (Offline mode leitura)
                 document.getElementById('sync-spinner').style.display = 'none';
+                if(!navigator.onLine) updateStatus('syncing');
+            } else {
+                // Server data and no pending writes
+                document.getElementById('sync-spinner').style.display = 'none';
+                updateStatus('online');
             }
 
             transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Salva localmente como backup
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
         }, err => { 
             console.error("Listen Error", err);
-            fallbackToOfflineOnly(); 
+            // Não desativamos o firebase aqui, pode ser um erro temporário
         });
 
+        // Listener de Cartões
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
                 let loadedCards = doc.data().cards;
@@ -387,6 +386,7 @@
             }
         });
     }
+    
     function handleMainFormSubmit(e) {
         e.preventDefault();
         const isEdit = !!document.getElementById('edit-id').value;
@@ -421,21 +421,28 @@
         Promise.all(promises).then(() => { showToast(`${count}x Geradas!`, "success"); resetForm(); });
     }
     
-    // FUNÇÃO CHAVE PARA SINCRONIZAÇÃO
+    // LÓGICA DE GRAVAÇÃO CORRIGIDA
     function submitSingleTransaction(data, isEdit, id = null, skipReset = false) {
         const historyEntry = { action: isEdit ? 'editado' : 'criado', user: currentUser, date: new Date().toISOString() };
         
+        // Se DB existe (scripts carregaram), SEMPRE mande para o Firebase.
+        // O SDK do Firebase gerencia a fila offline se a persistência estiver ativa.
         if (db) {
-            // Modo Firebase (Online ou Offline com Suporte - Fila Automática)
             if (isEdit) { 
-                db.collection('transactions').doc(id).update(data).then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } }); 
+                db.collection('transactions').doc(id).update(data)
+                .then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } })
+                .catch(err => console.error("Update error", err)); 
             } else { 
                 data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                 data.history = [historyEntry]; 
-                db.collection('transactions').add(data).then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } }); 
+                db.collection('transactions').add(data)
+                .then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } })
+                .catch(err => console.error("Add error", err)); 
             }
         } else {
-            // Modo Apenas Local
+            // Se DB não existe (scripts falharam ao carregar, ex: abriu sem internet e scripts não baixaram)
+            // Usa apenas localStorage. Neste caso, a sincronização futura NÃO funcionará automaticamente
+            // porque o script do Firebase nunca carregou naquela sessão.
             if (isEdit) { 
                 const idx = transactions.findIndex(t => t.id === id); 
                 if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; 
@@ -446,7 +453,7 @@
             }
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
-            if(!skipReset) { showToast("Salvo Localmente", "success"); resetForm(); }
+            if(!skipReset) { showToast("Salvo Localmente (Sem Internet)", "warning"); resetForm(); }
         }
     }
 
@@ -800,6 +807,26 @@
         else if (status === 'syncing') { dot.classList.add('offline'); text.innerText = "Sincronizando..."; document.getElementById('sync-spinner').style.display = 'block'; }
         else if (status === 'offline') { dot.classList.add('offline'); text.innerText = "Local"; document.getElementById('sync-spinner').style.display = 'none'; }
     }
+    function setupNotifications() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "denied") Notification.requestPermission();
+        setInterval(checkReminders, 60000);
+        checkReminders();
+    }
+    function checkReminders() {
+        if (Notification.permission !== "granted") return;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+        transactions.forEach(t => {
+            if (t.type === 'expense' && t.status === 'pending' && t.amount < 0) {
+                const tDate = new Date(t.date + 'T00:00:00');
+                const tDateClean = new Date(tDate.getFullYear(), tDate.getMonth(), tDate.getDate());
+                if (tDateClean.getTime() === today.getTime() || tDateClean.getTime() === tomorrow.getTime()) {
+                    new Notification(`Lembrete: ${t.description}`, { body: `Valor: ${formatCurrency(t.amount)}`, icon: 'https://cdn-icons-png.flaticon.com/512/3163/3163478.png' });
+                }
+            }
+        });
+    }
     function setUser() { const input = document.getElementById('username-input'); if (input.value.trim()) { currentUser = input.value.trim(); localStorage.setItem('currentUser', currentUser); updateUserDisplay(); closeModal('user-modal'); } }
     function changeUser() { document.getElementById('username-input').value = ""; document.getElementById('user-modal').classList.add('open'); }
     function updateUserDisplay() { document.getElementById('user-display').innerHTML = `<i class="fas fa-user"></i> ${currentUser}`; }
@@ -807,7 +834,7 @@
     function showToast(msg, type = 'success') {
         const toast = document.getElementById('toast'); const icon = document.getElementById('toast-icon'); const text = document.getElementById('toast-msg');
         toast.className = `toast ${type} show`; text.innerText = msg;
-        icon.className = type === 'success' ? 'fas fa-check-circle' : (type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle');
+        icon.className = type === 'success' ? 'fas fa-check-circle' : (type === 'error' ? 'fas fa-exclamation-circle' : (type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'));
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
     function updateCardSelect() {
