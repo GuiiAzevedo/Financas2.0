@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finanças do Casal Ultimate - Pro</title>
+    
+    <!-- Configurações PWA (Instalação) -->
+    <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="theme-color" content="#4f46e5">
-    <!-- Estilos Locais (Carregam rápido e offline) -->
+    
+    <!-- Estilos e Fontes -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #4f46e5; --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #111827; --text-light: #6b7280; --border-color: #e5e7eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); --radius: 12px; }
         [data-theme="dark"] { --primary: #6366f1; --bg-color: #111827; --card-bg: #1f2937; --text-main: #f9fafb; --text-light: #9ca3af; --border-color: #374151; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; min-height: 100vh; padding-bottom: 80px; }
         .container { max-width: 1100px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -92,6 +96,7 @@
     </style>
 </head>
 <body>
+
 <div id="user-modal" class="modal-overlay">
     <div class="modal">
         <h2>Quem está acessando?</h2>
@@ -100,6 +105,7 @@
         <button class="btn" onclick="setUser()">Entrar no Sistema</button>
     </div>
 </div>
+
 <div id="card-modal" class="modal-overlay">
     <div class="modal">
         <h2>Gerenciar Cartões</h2>
@@ -114,6 +120,7 @@
         <button class="btn btn-outline" style="margin-top: 20px;" onclick="closeModal('card-modal')">Fechar</button>
     </div>
 </div>
+
 <div id="card-history-modal" class="modal-overlay">
     <div class="modal large">
         <h2 id="history-modal-title"><span>Extrato do Cartão</span><button class="action-btn" onclick="closeModal('card-history-modal')"><i class="fas fa-times"></i></button></h2>
@@ -124,6 +131,7 @@
         <div style="margin-top: 15px; text-align: right; font-weight: bold; font-size: 1.1rem;">Total: <span id="history-modal-total" style="color: var(--danger);">R$ 0,00</span></div>
     </div>
 </div>
+
 <div class="container">
     <header>
         <div class="app-branding"><h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1><div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div></div>
@@ -138,12 +146,14 @@
             <button class="btn-icon" onclick="generatePDF()" title="Baixar PDF"><i class="fas fa-file-pdf" style="color: #b30b00;"></i></button>
         </div>
     </header>
+
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('geral')"><i class="fas fa-chart-pie"></i> Visão Geral</button>
         <button class="tab-btn" onclick="switchTab('cartoes')"><i class="fas fa-credit-card"></i> Cartões</button>
         <button class="tab-btn" onclick="switchTab('contas')"><i class="fas fa-file-invoice-dollar"></i> Contas a Pagar</button>
         <button class="tab-btn" onclick="switchTab('auditoria')"><i class="fas fa-history"></i> Auditoria</button>
     </div>
+
     <div id="tab-geral">
         <section class="summary">
             <div class="card income"><h3>Entradas</h3><div class="value" id="display-income">R$ 0,00</div></div>
@@ -154,6 +164,7 @@
             </div>
             <div class="card balance"><h3>Saldo em Conta</h3><div class="value" id="display-balance">R$ 0,00</div></div>
         </section>
+
         <div class="main-grid">
             <section class="section-box">
                 <h2 class="section-title" id="form-title"><i class="fas fa-plus-circle"></i> Nova Transação</h2>
@@ -169,17 +180,20 @@
                     <button type="button" class="btn btn-cancel" id="cancel-btn" onclick="resetForm()">Cancelar</button>
                 </form>
             </section>
+
             <section class="section-box">
                 <div class="filter-bar"><h2 class="section-title" style="margin:0; border:none;">Resumo de Gastos</h2><select id="month-filter" class="month-filter" onchange="updateUI()"></select></div>
                 <div style="height: 250px; position: relative; display: flex; justify-content: center;"><canvas id="financeChart"></canvas></div>
             </section>
         </div>
+
         <section class="section-box">
             <h2 class="section-title">Histórico Resumido (Mês Selecionado)</h2>
             <p style="font-size:0.8rem; color:var(--text-light); margin-bottom:10px;">Gastos no cartão são agrupados. Clique em "Ver Detalhes" para expandir.</p>
             <div class="table-container"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Status</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead><tbody id="transactions-list"></tbody></table></div>
         </section>
     </div>
+
     <div id="tab-cartoes" style="display: none;">
         <section class="section-box" style="border-left: 5px solid var(--primary);">
             <h2 class="section-title"><i class="fas fa-bolt"></i> Lançamento Rápido</h2>
@@ -198,6 +212,7 @@
             <div id="cards-summary-container"></div>
         </div>
     </div>
+
     <div id="tab-contas" style="display: none;">
         <div class="section-box" style="border: 2px solid var(--warning);">
             <h2 class="section-title" style="color: var(--warning);"><i class="fas fa-bell"></i> Contas Vencendo (Fatura Selecionada)</h2>
@@ -207,10 +222,12 @@
             <div class="table-container"><table><thead><tr><th>Data Pagamento</th><th>Descrição</th><th>Valor</th><th>Pago por</th></tr></thead><tbody id="paid-list"></tbody></table></div>
         </div>
     </div>
+
     <div id="tab-auditoria" style="display: none;">
         <div class="section-box"><h2 class="section-title"><i class="fas fa-history"></i> Log de Auditoria Completo</h2><div class="table-container"><table><thead><tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Item</th><th>Valor</th></tr></thead><tbody id="audit-list"></tbody></table></div></div>
     </div>
 </div>
+
 <div id="toast" class="toast"><i id="toast-icon" class="fas"></i><span id="toast-msg">Mensagem</span></div>
 
 <!-- Scripts com DEFER para não travar se não carregarem -->
@@ -229,7 +246,6 @@
     
     document.addEventListener('DOMContentLoaded', () => {
         // 1. CARREGAMENTO IMEDIATO (OFFLINE-FIRST)
-        // Carrega dados locais para garantir que o app abra na hora
         loadLocalData();
         
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
@@ -249,12 +265,10 @@
         setupNotifications();
 
         // 2. TENTA CONEXÃO COM FIREBASE APÓS PEQUENO DELAY (NÃO BLOQUEIA)
-        // Usamos setTimeout para garantir que a UI já apareceu antes de tentar conectar
         setTimeout(initFirebase, 500);
     });
 
     function loadLocalData() {
-        // Carrega transações e cartões do cache local
         const t = localStorage.getItem('local_transactions');
         const c = localStorage.getItem('mock_cards');
         if (t) transactions = JSON.parse(t);
@@ -271,7 +285,6 @@
     }
 
     function initFirebase() {
-        // Verifica se o script carregou
         if (typeof firebase === 'undefined') {
             console.log("Firebase script not loaded. Running offline.");
             fallbackToOfflineOnly();
@@ -282,7 +295,6 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
-            // Habilita persistência (ÍndexDB do Firebase) - Isso salva offline automaticamente
             db.enablePersistence({ synchronizeTabs: true })
                 .then(() => {
                     console.log("Firebase persistence enabled");
@@ -293,17 +305,14 @@
                 .catch((err) => {
                     console.error("Persistence failed:", err);
                     if (err.code == 'failed-precondition') {
-                        // Múltiplas abas
                         isFirebaseActive = true;
                         updateStatus('online');
                         listenForData();
                     } else {
-                        // Browser não suporta
                         fallbackToOfflineOnly();
                     }
                 });
 
-            // Ouvintes de rede para atualizar o status
             window.addEventListener('online', updateNetworkStatus);
             window.addEventListener('offline', updateNetworkStatus);
 
@@ -318,7 +327,7 @@
         if(navigator.onLine) {
             updateStatus('online');
         } else {
-            updateStatus('syncing'); // "Sincronizando..." mas permite uso
+            updateStatus('syncing'); 
         }
     }
 
@@ -350,7 +359,6 @@
     }
     function listenForData() {
         if(!db) return;
-        // Listener principal
         db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
             const source = snapshot.metadata.hasPendingWrites ? 'Local' : 'Server';
             if(source === 'Local') {
@@ -360,7 +368,6 @@
             }
 
             transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Mantém o localStorage sincronizado como backup
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
         }, err => { 
@@ -368,7 +375,6 @@
             fallbackToOfflineOnly(); 
         });
 
-        // Listener de cartões
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
                 let loadedCards = doc.data().cards;
@@ -419,13 +425,8 @@
     function submitSingleTransaction(data, isEdit, id = null, skipReset = false) {
         const historyEntry = { action: isEdit ? 'editado' : 'criado', user: currentUser, date: new Date().toISOString() };
         
-        // ESTRATÉGIA DE SINCRONIZAÇÃO:
-        // Se 'db' existe (scripts carregaram), mandamos para o Firebase MESMO OFFLINE.
-        // O Firebase enfileira o pedido e envia quando a internet voltar.
-        // Se 'db' não existe, salvamos no localStorage manual.
-        
         if (db) {
-            // Modo Firebase (Online ou Offline com Suporte)
+            // Modo Firebase (Online ou Offline com Suporte - Fila Automática)
             if (isEdit) { 
                 db.collection('transactions').doc(id).update(data).then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } }); 
             } else { 
@@ -434,7 +435,7 @@
                 db.collection('transactions').add(data).then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } }); 
             }
         } else {
-            // Modo Apenas Local (Scripts não carregaram)
+            // Modo Apenas Local
             if (isEdit) { 
                 const idx = transactions.findIndex(t => t.id === id); 
                 if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; 
@@ -858,5 +859,21 @@
         XLSX.writeFile(wb, "financas_ultima.xlsx");
     }
 </script>
+
+<!-- SCRIPT PARA REGISTRAR O SERVICE WORKER (PWA) -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch(error => {
+                    console.log('Falha ao registrar Service Worker:', error);
+                });
+        });
+    }
+</script>
+
 </body>
 </html>
