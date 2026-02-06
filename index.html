@@ -235,20 +235,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js" defer></script>
+<!-- Firebase Scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" defer></script>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyCdm331rhwKzLpfM3u5jn48-c_bthiygRw", authDomain: "finances2-efd87.firebaseapp.com", projectId: "finances2-efd87", storageBucket: "finances2-efd87.firebasestorage.app", messagingSenderId: "645175309303", appId: "1:645175309303:web:a5eca0bd0eec467b9234f2" };
     let db, transactions = [], cards = [], chartInstance = null, currentUser = "";
-    // isFirebaseActive indica apenas se os scripts carregaram, não se há internet
-    let isFirebaseActive = false; 
+    let isFirebaseActive = false;
     
     const cardBrands = { 'Nubank': { icon: 'fa-robot', color: '#8a05be' }, 'Inter': { icon: 'fa-university', color: '#ff7c00' }, 'Caixa': { icon: 'fa-building-columns', color: '#004a8d' }, 'Visa': { icon: 'fa-credit-card', color: '#1a1f71' }, 'Master': { icon: 'fa-credit-card', color: '#eb001b' }, 'Elo': { icon: 'fa-globe', color: '#000000' }, 'Hipercard': { icon: 'fa-layer-group', color: '#b22b2b' }, 'default': { icon: 'fa-credit-card', color: '#6b7280' } };
     const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
     
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. CARREGAMENTO IMEDIATO (OFFLINE-FIRST)
+        // 1. CARREGAMENTO LOCAL IMEDIATO
         loadLocalData();
         
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
@@ -270,7 +270,7 @@
         // 2. TENTA CONEXÃO COM FIREBASE
         setTimeout(initFirebase, 500);
         
-        // 3. OUVINTES DE REDE DO NAVEGADOR
+        // 3. OUVINTES DE REDE
         window.addEventListener('online', updateNetworkStatus);
         window.addEventListener('offline', updateNetworkStatus);
         updateNetworkStatus(); // Check inicial
@@ -295,7 +295,6 @@
     function initFirebase() {
         if (typeof firebase === 'undefined') {
             console.log("Firebase script not loaded. Running offline.");
-            // Se não carregou, não tem como tentar reconectar depois sem recarregar a página
             isFirebaseActive = false;
             updateStatus('offline');
             return;
@@ -305,19 +304,17 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
-            // Tenta habilitar persistência. Se falhar (ex: duas abas), não desliga o app, apenas loga.
+            // Habilita persistência offline do próprio Firebase
             db.enablePersistence({ synchronizeTabs: true })
                 .then(() => {
                     console.log("Firebase persistence enabled");
                     isFirebaseActive = true;
-                    updateNetworkStatus(); // Atualiza status baseado na rede atual
+                    updateNetworkStatus();
                     listenForData();
                 })
                 .catch((err) => {
-                    console.error("Persistence warning (non-fatal):", err);
-                    // Mesmo sem persistência de disco, o Firebase funciona online.
-                    // Mas com o SDK v9, a persistência é o que garante o offline.
-                    // Se falhar aqui, vamos tentar usar online anyway, mas avisando que offline pode falhar.
+                    console.error("Persistence warning:", err);
+                    // Se falhar por multiplas abas, ainda funciona online
                     isFirebaseActive = true; 
                     updateNetworkStatus();
                     listenForData();
@@ -331,12 +328,12 @@
     }
 
     function updateNetworkStatus() {
-        if (!db) return; // Se não existe db, não tem o que fazer.
+        if (!db) return;
 
         if (navigator.onLine) {
             updateStatus('online');
-            // Força uma checagem silenciosa ou apenas deixa o listener do Snapshot lidar com isso
-            console.log("Network is back online. Syncing pending ops...");
+            // O snapshot listener do Firebase vai lidar com a ressincronização automaticamente
+            console.log("Network is back online.");
         } else {
             updateStatus('syncing'); 
         }
@@ -347,7 +344,6 @@
         
         // Listener de Transações
         const unsubscribeTrans = db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
-            // Verifica se os dados são do cache ou do servidor
             const source = snapshot.metadata.fromCache ? 'Local' : 'Server';
             const pending = snapshot.metadata.hasPendingWrites;
 
@@ -355,8 +351,8 @@
                 document.getElementById('sync-spinner').style.display = 'block';
                 document.getElementById('status-text').innerText = "Enviando...";
             } else if (source === 'Local' && !pending) {
-                // Está vendo cache, mas não tem nada pendente para escrever (Offline mode leitura)
                 document.getElementById('sync-spinner').style.display = 'none';
+                // Se está offline, mostra como sincronizando
                 if(!navigator.onLine) updateStatus('syncing');
             } else {
                 // Server data and no pending writes
@@ -365,12 +361,11 @@
             }
 
             transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Salva localmente como backup
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
         }, err => { 
             console.error("Listen Error", err);
-            // Não desativamos o firebase aqui, pode ser um erro temporário
+            // Se der erro de permissão ou rede, não quebra o app
         });
 
         // Listener de Cartões
@@ -421,12 +416,9 @@
         Promise.all(promises).then(() => { showToast(`${count}x Geradas!`, "success"); resetForm(); });
     }
     
-    // LÓGICA DE GRAVAÇÃO CORRIGIDA
     function submitSingleTransaction(data, isEdit, id = null, skipReset = false) {
         const historyEntry = { action: isEdit ? 'editado' : 'criado', user: currentUser, date: new Date().toISOString() };
         
-        // Se DB existe (scripts carregaram), SEMPRE mande para o Firebase.
-        // O SDK do Firebase gerencia a fila offline se a persistência estiver ativa.
         if (db) {
             if (isEdit) { 
                 db.collection('transactions').doc(id).update(data)
@@ -440,9 +432,7 @@
                 .catch(err => console.error("Add error", err)); 
             }
         } else {
-            // Se DB não existe (scripts falharam ao carregar, ex: abriu sem internet e scripts não baixaram)
-            // Usa apenas localStorage. Neste caso, a sincronização futura NÃO funcionará automaticamente
-            // porque o script do Firebase nunca carregou naquela sessão.
+            // Fallback Local
             if (isEdit) { 
                 const idx = transactions.findIndex(t => t.id === id); 
                 if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; 
@@ -453,7 +443,7 @@
             }
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
-            if(!skipReset) { showToast("Salvo Localmente (Sem Internet)", "warning"); resetForm(); }
+            if(!skipReset) { showToast("Salvo Localmente (Offline)", "warning"); resetForm(); }
         }
     }
 
