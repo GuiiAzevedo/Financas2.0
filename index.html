@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanças do Casal Ultimate - Pro</title>
+    <title>Finanças v3 (DEBUG)</title> <!-- Título alterado para confirmar versão -->
     
     <!-- Configurações PWA -->
     <link rel="manifest" href="manifest.json">
@@ -29,11 +29,7 @@
         .status-dot.offline { background-color: var(--warning); }
         .btn-icon { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; }
         .btn-icon:hover { transform: translateY(-2px); border-color: var(--primary); color: var(--primary); }
-        
-        /* Botão de Debug */
         .btn-test { background: var(--warning); color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; text-transform: uppercase; white-space: nowrap; }
-        .btn-test:active { transform: scale(0.95); }
-
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; overflow-x: auto; }
         .tab-btn { background: none; border: none; font-size: 0.9rem; color: var(--text-light); cursor: pointer; padding: 8px 16px; border-radius: 8px; font-weight: 500; white-space: nowrap; }
         .tab-btn:hover { background: rgba(79, 70, 229, 0.05); color: var(--primary); }
@@ -139,7 +135,7 @@
 <div class="container">
     <header>
         <div class="app-branding">
-            <h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1>
+            <h1><i class="fas fa-wallet"></i> Finanças v3 (DEBUG)</h1>
             <div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div>
         </div>
         <div class="header-controls">
@@ -150,7 +146,7 @@
             </div>
             
             <!-- BOTÃO DE DIAGNÓSTICO -->
-            <button id="debug-btn" class="btn-test" onclick="testConnection()">TESTAR CONEXÃO</button>
+            <button id="debug-btn" class="btn-test" onclick="testConnection()">TESTAR</button>
             
             <button class="btn-icon" onclick="toggleTheme()" title="Alternar Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
             <button class="btn-icon" onclick="exportToExcel()" title="Baixar Excel"><i class="fas fa-file-excel" style="color: #107c41;"></i></button>
@@ -309,7 +305,7 @@
 
     function initFirebase() {
         if (typeof firebase === 'undefined') {
-            alert("Erro Crítico: Os scripts do Firebase não carregaram. Verifique sua internet.");
+            alert("Erro Crítico: Scripts não carregados.");
             isFirebaseActive = false;
             updateStatus('offline');
             return;
@@ -319,19 +315,12 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
-            db.enablePersistence({ synchronizeTabs: true })
-                .then(() => {
-                    console.log("Firebase persistence enabled");
-                    isFirebaseActive = true;
-                    updateNetworkStatus();
-                    listenForData();
-                })
-                .catch((err) => {
-                    console.warn("Falha na persistência, tentando online apenas:", err);
-                    isFirebaseActive = true;
-                    updateNetworkStatus();
-                    listenForData();
-                });
+            // IMPORTANTE: PERSISTÊNCIA DESATIVADA FORÇADAMENTE PARA DEBUG
+            // Se funcionar assim, o cache offline estava travando o app.
+            console.log("Iniciando SEM persistência (Forçado para Debug)");
+            isFirebaseActive = true;
+            updateNetworkStatus();
+            listenForData();
 
         } catch (e) {
             console.error("Firebase Init Error", e);
@@ -341,29 +330,27 @@
         }
     }
 
-    // --- FUNÇÃO DE TESTE MANUAL (DEBUG) ---
+    // --- FUNÇÃO DE TESTE MANUAL ---
     function testConnection() {
         if (!db) {
-            alert("Erro: Firebase não inicializado. Verifique o console.");
+            alert("Erro: Firebase não inicializado.");
             return;
         }
         const btn = document.getElementById('debug-btn');
         const originalText = btn.innerText;
         btn.innerText = "TESTANDO...";
         
-        // Tenta ler APENAS 1 documento
         db.collection('transactions').limit(1).get()
             .then((snapshot) => {
                 if (snapshot.empty) {
-                    alert("✅ SUCESSO: Conexão estabelecida! (O banco está vazio ou sem dados visíveis)");
+                    alert("✅ SUCESSO: Conexão OK! (Banco Vazio)");
                 } else {
-                    alert("✅ SUCESSO: Conexão estabelecida! Lendo dados do servidor.");
+                    alert("✅ SUCESSO: Conexão OK! Dados encontrados no servidor.");
                 }
                 updateStatus('online');
             })
             .catch((error) => {
-                console.error(error);
-                alert("❌ ERRO DE LEITURA:\n\n" + error.message + "\n\nCópie essa mensagem e envie para o suporte.");
+                alert("❌ ERRO:\n\n" + error.message);
                 updateStatus('offline');
             })
             .finally(() => {
@@ -371,16 +358,16 @@
             });
     }
 
-    // --- FUNÇÃO LISTENER (SEM ORDERBY) ---
+    // --- FUNÇÃO LISTENER (COM ALERTAS DE DIAGNÓSTICO) ---
     function listenForData() {
         if(!db) return;
         
         const unsubscribeTrans = db.collection('transactions').onSnapshot(snapshot => {
             
-            const source = snapshot.metadata.fromCache ? 'Local' : 'Server';
-            const pending = snapshot.metadata.hasPendingWrites;
-
-            console.log("Snapshot recebido. Fonte:", source, "Pendente:", pending);
+            // ALERTA 1: Listener está funcionando?
+            console.log("Snapshot recebido. Tamanho:", snapshot.docs.length);
+            // Se quiser ver esse alerta sempre, descomente a linha abaixo:
+            // alert("LISTENER ATIVO! Recebidos: " + snapshot.docs.length + " itens.");
 
             let rawTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -394,6 +381,15 @@
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
 
+            // ALERTA 2: Houve mudança?
+            // Como onSnapshot roda na abertura e em mudanças, 
+            // vamos focar apenas em mudanças reais (type !== 'added' no metadata não é exposto easily no compat)
+            // Mas o updateUI() sendo chamado já é um sinal.
+            
+            // Lógica de Status Visual
+            const source = snapshot.metadata.fromCache ? 'Local' : 'Server';
+            const pending = snapshot.metadata.hasPendingWrites;
+
             if (pending) {
                 document.getElementById('sync-spinner').style.display = 'block';
                 document.getElementById('status-text').innerText = "Enviando...";
@@ -401,8 +397,9 @@
             } else if (source === 'Server') {
                 document.getElementById('sync-spinner').style.display = 'none';
                 updateStatus('online'); 
+                // Quando vier do servidor, avisamos o usuário
+                // alert("DADOS SINCRONIZADOS DO SERVIDOR!");
             } else {
-                // Source === Local
                 document.getElementById('sync-spinner').style.display = 'none';
                 if (navigator.onLine) updateStatus('online');
                 else updateStatus('syncing');
@@ -410,7 +407,7 @@
 
         }, err => { 
             console.error("Erro no Listener:", err);
-            // Não mostro alert aqui para não spammar, o usuário pode usar o botão de teste
+            alert("ERRO FATAL NO LISTENER:\n" + err.message + "\n\nO app não consegue ouvir o banco.");
             updateStatus('offline');
         });
 
@@ -474,7 +471,13 @@
                 data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                 data.history = [historyEntry]; 
                 db.collection('transactions').add(data)
-                .then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } })
+                .then(() => { 
+                    if(!skipReset) { 
+                        alert("DADO SALVO NO FIREBASE! O Listener deve capturar agora."); // Debug
+                        showToast("Salvo!", "success"); 
+                        resetForm(); 
+                    } 
+                })
                 .catch(err => { console.error("Add error", err); alert("Erro ao salvar: " + err.message); }); 
             }
         } else {
@@ -922,11 +925,10 @@
     }
 </script>
 
-<!-- SERVICE WORKER DESATIVADO PARA DEBUG -->
+<!-- SERVICE WORKER DESATIVADO -->
 <script>
     if ('serviceWorker' in navigator) {
-        console.log("Service Worker desativado manualmente para depuração de conexão.");
-        // navigator.serviceWorker.register('./sw.js') ...
+        // SW Desativado para garantir leitura limpa
     }
 </script>
 
