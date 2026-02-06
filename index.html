@@ -248,7 +248,6 @@
     const categories = { income: ['Salário', 'Investimentos', 'Presente', 'Vendas', 'Outros'], expense: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Compras', 'Outros'] };
     
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. CARREGAMENTO LOCAL IMEDIATO
         loadLocalData();
         
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
@@ -267,13 +266,12 @@
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
         setupNotifications();
 
-        // 2. TENTA CONEXÃO COM FIREBASE
+        // Tenta conexão após 500ms para garantir scripts carregados
         setTimeout(initFirebase, 500);
         
-        // 3. OUVINTES DE REDE
         window.addEventListener('online', updateNetworkStatus);
         window.addEventListener('offline', updateNetworkStatus);
-        updateNetworkStatus(); // Check inicial
+        updateNetworkStatus();
     });
 
     function loadLocalData() {
@@ -292,9 +290,10 @@
         updateUI();
     }
 
+    // --- VERSÃO COM DEBUG E TRATAMENTO DE ERRO MELHORADO ---
     function initFirebase() {
         if (typeof firebase === 'undefined') {
-            console.log("Firebase script not loaded. Running offline.");
+            alert("Erro Crítico: Os scripts do Firebase não carregaram. Verifique sua internet ou se o site está em HTTP (precisa ser HTTPS).");
             isFirebaseActive = false;
             updateStatus('offline');
             return;
@@ -304,7 +303,7 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
-            // Habilita persistência offline do próprio Firebase
+            // Tenta habilitar persistência
             db.enablePersistence({ synchronizeTabs: true })
                 .then(() => {
                     console.log("Firebase persistence enabled");
@@ -313,49 +312,52 @@
                     listenForData();
                 })
                 .catch((err) => {
-                    console.error("Persistence warning:", err);
-                    // Se falhar por multiplas abas, ainda funciona online
-                    isFirebaseActive = true; 
+                    // Erro comum: Multiple tabs open. Tentamos funcionar sem persistência.
+                    console.warn("Falha na persistência (offline cache), tentando online apenas:", err);
+                    
+                    // Continua tentando conectar sem cache local
+                    isFirebaseActive = true;
                     updateNetworkStatus();
                     listenForData();
+                    
+                    // Descomente a linha abaixo para ver o erro no celular
+                    // alert("Aviso: Modo offline limitado. Erro: " + err.message); 
                 });
 
         } catch (e) {
             console.error("Firebase Init Error", e);
+            alert("Erro ao iniciar Firebase: " + e.message);
             isFirebaseActive = false;
             updateStatus('offline');
         }
     }
 
-    function updateNetworkStatus() {
-        if (!db) return;
-
-        if (navigator.onLine) {
-            updateStatus('online');
-            // O snapshot listener do Firebase vai lidar com a ressincronização automaticamente
-            console.log("Network is back online.");
-        } else {
-            updateStatus('syncing'); 
-        }
-    }
-
+    // --- VERSÃO COM DEBUG DE SNAPSHOT ---
     function listenForData() {
         if(!db) return;
         
-        // Listener de Transações
         const unsubscribeTrans = db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
             const source = snapshot.metadata.fromCache ? 'Local' : 'Server';
             const pending = snapshot.metadata.hasPendingWrites;
+
+            console.log("Snapshot recebido. Fonte:", source, "Pendente:", pending);
 
             if (pending) {
                 document.getElementById('sync-spinner').style.display = 'block';
                 document.getElementById('status-text').innerText = "Enviando...";
             } else if (source === 'Local' && !pending) {
                 document.getElementById('sync-spinner').style.display = 'none';
-                // Se está offline, mostra como sincronizando
-                if(!navigator.onLine) updateStatus('syncing');
+                // Se está offline, mostra sincronizando
+                if(!navigator.onLine) {
+                    updateStatus('syncing');
+                } else {
+                    // SE ESTIVER ONLINE MAS SÓ DADOS LOCAIS: HÁ UM BLOQUEIO DE REDE
+                    updateStatus('offline'); // Força status offline
+                    document.getElementById('status-text').innerText = "Sem Sincronia (Rede?)";
+                    // AQUI ESTÁ O PROBLEMA SE APARECER
+                }
             } else {
-                // Server data and no pending writes
+                // Dados vindos do servidor com sucesso
                 document.getElementById('sync-spinner').style.display = 'none';
                 updateStatus('online');
             }
@@ -364,8 +366,8 @@
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
         }, err => { 
-            console.error("Listen Error", err);
-            // Se der erro de permissão ou rede, não quebra o app
+            console.error("Erro no Listener:", err);
+            alert("Erro de conexão com banco: " + err.message);
         });
 
         // Listener de Cartões
@@ -423,16 +425,15 @@
             if (isEdit) { 
                 db.collection('transactions').doc(id).update(data)
                 .then(() => { if(!skipReset) { showToast("Atualizado!", "success"); resetForm(); } })
-                .catch(err => console.error("Update error", err)); 
+                .catch(err => { console.error("Update error", err); alert("Erro ao atualizar: " + err.message); }); 
             } else { 
                 data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                 data.history = [historyEntry]; 
                 db.collection('transactions').add(data)
                 .then(() => { if(!skipReset) { showToast("Salvo!", "success"); resetForm(); } })
-                .catch(err => console.error("Add error", err)); 
+                .catch(err => { console.error("Add error", err); alert("Erro ao salvar: " + err.message); }); 
             }
         } else {
-            // Fallback Local
             if (isEdit) { 
                 const idx = transactions.findIndex(t => t.id === id); 
                 if(idx !== -1) transactions[idx] = { ...transactions[idx], ...data, history: [...(transactions[idx].history||[]), historyEntry] }; 
@@ -884,6 +885,8 @@
             navigator.serviceWorker.register('./sw.js')
                 .then(registration => {
                     console.log('Service Worker registrado com sucesso:', registration);
+                    // Força update do SW se houver nova versão
+                    registration.update();
                 })
                 .catch(error => {
                     console.log('Falha ao registrar Service Worker:', error);
