@@ -29,6 +29,11 @@
         .status-dot.offline { background-color: var(--warning); }
         .btn-icon { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; }
         .btn-icon:hover { transform: translateY(-2px); border-color: var(--primary); color: var(--primary); }
+        
+        /* Botão de Debug */
+        .btn-test { background: var(--warning); color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; text-transform: uppercase; white-space: nowrap; }
+        .btn-test:active { transform: scale(0.95); }
+
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; overflow-x: auto; }
         .tab-btn { background: none; border: none; font-size: 0.9rem; color: var(--text-light); cursor: pointer; padding: 8px 16px; border-radius: 8px; font-weight: 500; white-space: nowrap; }
         .tab-btn:hover { background: rgba(79, 70, 229, 0.05); color: var(--primary); }
@@ -133,13 +138,20 @@
 
 <div class="container">
     <header>
-        <div class="app-branding"><h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1><div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div></div>
+        <div class="app-branding">
+            <h1><i class="fas fa-wallet"></i> Finanças Ultimate</h1>
+            <div id="user-display" class="user-badge" onclick="changeUser()"><i class="fas fa-user"></i> Visitante</div>
+        </div>
         <div class="header-controls">
             <div class="status-indicator" id="status-indicator" title="Status de Conexão">
                 <div class="spinner" id="sync-spinner"></div>
                 <div class="status-dot" id="status-dot"></div>
                 <span id="status-text">...</span>
             </div>
+            
+            <!-- BOTÃO DE DIAGNÓSTICO -->
+            <button id="debug-btn" class="btn-test" onclick="testConnection()">TESTAR CONEXÃO</button>
+            
             <button class="btn-icon" onclick="toggleTheme()" title="Alternar Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
             <button class="btn-icon" onclick="exportToExcel()" title="Baixar Excel"><i class="fas fa-file-excel" style="color: #107c41;"></i></button>
             <button class="btn-icon" onclick="generatePDF()" title="Baixar PDF"><i class="fas fa-file-pdf" style="color: #b30b00;"></i></button>
@@ -329,12 +341,40 @@
         }
     }
 
-    // --- FUNÇÃO ATUALIZADA (SEM ORDERBY NO SERVIDOR) ---
+    // --- FUNÇÃO DE TESTE MANUAL (DEBUG) ---
+    function testConnection() {
+        if (!db) {
+            alert("Erro: Firebase não inicializado. Verifique o console.");
+            return;
+        }
+        const btn = document.getElementById('debug-btn');
+        const originalText = btn.innerText;
+        btn.innerText = "TESTANDO...";
+        
+        // Tenta ler APENAS 1 documento
+        db.collection('transactions').limit(1).get()
+            .then((snapshot) => {
+                if (snapshot.empty) {
+                    alert("✅ SUCESSO: Conexão estabelecida! (O banco está vazio ou sem dados visíveis)");
+                } else {
+                    alert("✅ SUCESSO: Conexão estabelecida! Lendo dados do servidor.");
+                }
+                updateStatus('online');
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("❌ ERRO DE LEITURA:\n\n" + error.message + "\n\nCópie essa mensagem e envie para o suporte.");
+                updateStatus('offline');
+            })
+            .finally(() => {
+                btn.innerText = originalText;
+            });
+    }
+
+    // --- FUNÇÃO LISTENER (SEM ORDERBY) ---
     function listenForData() {
         if(!db) return;
         
-        // MUDANÇA: Removemos o .orderBy('date', 'desc') da consulta.
-        // Isso elimina o erro de índice.
         const unsubscribeTrans = db.collection('transactions').onSnapshot(snapshot => {
             
             const source = snapshot.metadata.fromCache ? 'Local' : 'Server';
@@ -342,10 +382,9 @@
 
             console.log("Snapshot recebido. Fonte:", source, "Pendente:", pending);
 
-            // Pega os dados
             let rawTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // ORDENA NO JAVASCRIPT (Mais recente para o mais antigo)
+            // Ordenação no JS
             transactions = rawTransactions.sort((a, b) => {
                 const dateA = new Date(a.date || 0);
                 const dateB = new Date(b.date || 0);
@@ -355,26 +394,23 @@
             localStorage.setItem('local_transactions', JSON.stringify(transactions));
             updateUI();
 
-            // Lógica de Status
             if (pending) {
                 document.getElementById('sync-spinner').style.display = 'block';
                 document.getElementById('status-text').innerText = "Enviando...";
                 document.getElementById('status-dot').className = 'status-dot offline';
             } else if (source === 'Server') {
                 document.getElementById('sync-spinner').style.display = 'none';
-                updateStatus('online'); // Verde (Conectado)
+                updateStatus('online'); 
             } else {
                 // Source === Local
                 document.getElementById('sync-spinner').style.display = 'none';
-                // Se estiver online mas veio do cache, assumimos Online (só não atualizou ainda)
-                // Se estiver offline, fica Amarelo
                 if (navigator.onLine) updateStatus('online');
                 else updateStatus('syncing');
             }
 
         }, err => { 
             console.error("Erro no Listener:", err);
-            alert("Erro ao receber dados do banco: " + err.message);
+            // Não mostro alert aqui para não spammar, o usuário pode usar o botão de teste
             updateStatus('offline');
         });
 
@@ -886,18 +922,11 @@
     }
 </script>
 
+<!-- SERVICE WORKER DESATIVADO PARA DEBUG -->
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(registration => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                    registration.update();
-                })
-                .catch(error => {
-                    console.log('Falha ao registrar Service Worker:', error);
-                });
-        });
+        console.log("Service Worker desativado manualmente para depuração de conexão.");
+        // navigator.serviceWorker.register('./sw.js') ...
     }
 </script>
 
