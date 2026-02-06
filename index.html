@@ -90,7 +90,6 @@
         .toast.show { transform: translateY(0); }
         .toast.success { border-left-color: var(--success); }
         .toast.error { border-left-color: var(--danger); }
-        /* Loading Spinner */
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 20px; height: 20px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -230,17 +229,24 @@
 
 <div id="toast" class="toast"><i id="toast-icon" class="fas"></i><span id="toast-msg">Mensagem</span></div>
 
-<!-- Scripts com DEFER para não travar se não carregarem -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js" defer></script>
-<!-- Firebase Scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" defer></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyCdm331rhwKzLpfM3u5jn48-c_bthiygRw", authDomain: "finances2-efd87.firebaseapp.com", projectId: "finances2-efd87", storageBucket: "finances2-efd87.firebasestorage.app", messagingSenderId: "645175309303", appId: "1:645175309303:web:a5eca0bd0eec467b9234f2" };
+    // --- NOVA CONFIGURAÇÃO ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3xkBSODmhjXCSUC42DX8CT6cxlGHcysc",
+      authDomain: "financeiro-f1e38.firebaseapp.com",
+      projectId: "financeiro-f1e38",
+      storageBucket: "financeiro-f1e38.firebasestorage.app",
+      messagingSenderId: "936515598203",
+      appId: "1:936515598203:web:7ff895189106fd5621afde"
+    };
+
     let db, transactions = [], cards = [], chartInstance = null, currentUser = "";
     let isFirebaseActive = false;
     
@@ -266,7 +272,6 @@
         document.getElementById('quick-card-form').addEventListener('submit', handleQuickFormSubmit);
         setupNotifications();
 
-        // Tenta conexão após 500ms para garantir scripts carregados
         setTimeout(initFirebase, 500);
         
         window.addEventListener('online', updateNetworkStatus);
@@ -290,10 +295,9 @@
         updateUI();
     }
 
-    // --- VERSÃO COM DEBUG E TRATAMENTO DE ERRO MELHORADO ---
     function initFirebase() {
         if (typeof firebase === 'undefined') {
-            alert("Erro Crítico: Os scripts do Firebase não carregaram. Verifique sua internet ou se o site está em HTTP (precisa ser HTTPS).");
+            alert("Erro Crítico: Os scripts do Firebase não carregaram. Verifique sua internet.");
             isFirebaseActive = false;
             updateStatus('offline');
             return;
@@ -303,7 +307,6 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
-            // Tenta habilitar persistência
             db.enablePersistence({ synchronizeTabs: true })
                 .then(() => {
                     console.log("Firebase persistence enabled");
@@ -312,16 +315,10 @@
                     listenForData();
                 })
                 .catch((err) => {
-                    // Erro comum: Multiple tabs open. Tentamos funcionar sem persistência.
                     console.warn("Falha na persistência (offline cache), tentando online apenas:", err);
-                    
-                    // Continua tentando conectar sem cache local
                     isFirebaseActive = true;
                     updateNetworkStatus();
                     listenForData();
-                    
-                    // Descomente a linha abaixo para ver o erro no celular
-                    // alert("Aviso: Modo offline limitado. Erro: " + err.message); 
                 });
 
         } catch (e) {
@@ -332,7 +329,6 @@
         }
     }
 
-    // --- VERSÃO COM DEBUG DE SNAPSHOT ---
     function listenForData() {
         if(!db) return;
         
@@ -347,17 +343,13 @@
                 document.getElementById('status-text').innerText = "Enviando...";
             } else if (source === 'Local' && !pending) {
                 document.getElementById('sync-spinner').style.display = 'none';
-                // Se está offline, mostra sincronizando
                 if(!navigator.onLine) {
                     updateStatus('syncing');
                 } else {
-                    // SE ESTIVER ONLINE MAS SÓ DADOS LOCAIS: HÁ UM BLOQUEIO DE REDE
-                    updateStatus('offline'); // Força status offline
+                    updateStatus('offline');
                     document.getElementById('status-text').innerText = "Sem Sincronia (Rede?)";
-                    // AQUI ESTÁ O PROBLEMA SE APARECER
                 }
             } else {
-                // Dados vindos do servidor com sucesso
                 document.getElementById('sync-spinner').style.display = 'none';
                 updateStatus('online');
             }
@@ -370,7 +362,6 @@
             alert("Erro de conexão com banco: " + err.message);
         });
 
-        // Listener de Cartões
         db.collection('settings').doc('config').onSnapshot(doc => {
             if (doc.exists && doc.data().cards) {
                 let loadedCards = doc.data().cards;
@@ -878,14 +869,12 @@
     }
 </script>
 
-<!-- SCRIPT PARA REGISTRAR O SERVICE WORKER (PWA) -->
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
                 .then(registration => {
                     console.log('Service Worker registrado com sucesso:', registration);
-                    // Força update do SW se houver nova versão
                     registration.update();
                 })
                 .catch(error => {
