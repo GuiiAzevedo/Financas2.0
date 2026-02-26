@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#5a67d8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Finanças Família</title>
+    <title>Finanças Família Pro</title>
 
-    <!-- LINK PARA O SEU ÍCONE E MANIFESTO -->
+    <!-- Ícone e Manifesto -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
 
+    <!-- Biblioteca para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
+        /* --- VARIÁVEIS DE TEMA (CLARO) --- */
         :root {
             --bg-body: #f4f6f8;
             --bg-card: #ffffff;
@@ -26,24 +29,34 @@
             --warning: #ed8936;
             --info: #4299e1;
             --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --radius: 12px;
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        /* --- VARIÁVEIS DE TEMA (ESCURO) --- */
+        [data-theme="dark"] {
+            --bg-body: #1a202c;
+            --bg-card: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #a0aec0;
+            --border: #4a5568;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.5; height: 100vh; display: flex; overflow: hidden; }
+        body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.5; height: 100vh; display: flex; overflow: hidden; transition: background 0.3s, color 0.3s; }
 
         /* Layout */
-        .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease; z-index: 100; }
+        .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; }
         .main-content { flex: 1; overflow-y: auto; padding: 2rem; position: relative; scroll-behavior: smooth; }
 
         /* Nav */
         .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
         .nav-item { padding: 0.75rem 1rem; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 10px; }
-        .nav-item:hover { background-color: #f7fafc; color: var(--primary); }
-        .nav-item.active { background-color: #ebf4ff; color: var(--primary); }
+        .nav-item:hover { background-color: var(--bg-body); color: var(--primary); }
+        .nav-item.active { background-color: var(--primary); color: white; }
 
         /* Components */
         .btn { padding: 0.75rem 1.5rem; border-radius: var(--radius); border: none; cursor: pointer; font-weight: 600; transition: transform 0.1s, opacity 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
@@ -52,7 +65,7 @@
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
         .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
-        .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
 
         /* Dashboard */
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
@@ -61,20 +74,20 @@
         .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); }
 
         /* Lists */
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #edf2f7; background: white; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
         .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; }
         .item-info p { font-size: 0.85rem; color: var(--text-secondary); }
-        .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: #edf2f7; color: var(--text-secondary); margin-left: 8px; }
+        .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-body); color: var(--text-secondary); margin-left: 8px; }
         .action-buttons { display: flex; gap: 5px; }
 
         /* Cards UI */
-        .credit-card-ui { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .credit-card-ui { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: var(--shadow); }
         .progress-bar-bg { background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
         .progress-bar-fill { background: white; height: 100%; border-radius: 4px; width: 0%; transition: width 0.5s ease; }
 
-        /* Login */
-        #auth-overlay { background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; position: fixed; top:0; left:0; width:100%; height:100%; }
-        .auth-box { background: white; padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; }
+        /* Login & Group */
+        #auth-overlay, #group-overlay { background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; position: fixed; top:0; left:0; width:100%; height:100%; }
+        .auth-box, .group-box { background: var(--bg-card); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; }
         .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
         .auth-tab { flex: 1; padding: 0.5rem; cursor: pointer; color: var(--text-secondary); }
         .auth-tab.active { border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: bold; }
@@ -82,18 +95,18 @@
         /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
-        .modal { background: white; width: 100%; max-width: 500px; border-radius: var(--radius); padding: 2rem; transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto;}
+        .modal { background: var(--bg-card); width: 100%; max-width: 500px; border-radius: var(--radius); padding: 2rem; transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto;}
         .modal-overlay.open .modal { transform: translateY(0); }
         .form-group { margin-bottom: 1rem; text-align: left; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
-        .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; }
+        .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; background: var(--bg-body); color: var(--text-primary); }
         .radio-group { display: flex; gap: 1rem; }
         .radio-option { flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; }
-        .radio-option.selected { border-color: var(--primary); background: #ebf4ff; color: var(--primary); }
+        .radio-option.selected { border-color: var(--primary); background: var(--primary); color: white; }
 
         /* Toast */
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: white; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); min-width: 250px; animation: slideIn 0.3s ease; }
+        .toast { background: var(--bg-card); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 4px; box-shadow: var(--shadow); min-width: 250px; animation: slideIn 0.3s ease; color: var(--text-primary); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         .hidden { display: none !important; }
@@ -101,19 +114,16 @@
         .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
         
         /* Loading */
-        #loading-overlay { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        #loading-overlay { position: fixed; inset: 0; background: var(--bg-body); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--bg-card); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Mobile Adjustments */
-        .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: white; border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: none; font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; }
+        /* Mobile */
+        .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
 
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; min-height: 100vh; }
-            .sidebar { 
-                position: fixed; height: 100%; left: -260px; 
-                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            }
+            .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
             .sidebar.open { transform: translateX(260px); left: -260px; }
             .mobile-menu-btn { display: flex; }
             .nav-links { flex-direction: column; overflow-x: visible; padding-bottom: 5px; }
@@ -127,7 +137,7 @@
     <!-- LOADING -->
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p style="margin-top: 1rem; color: var(--text-secondary);">Conectando ao Firebase...</p>
+        <p style="margin-top: 1rem; color: var(--text-secondary);">Carregando...</p>
     </div>
 
     <!-- MOBILE MENU BUTTON -->
@@ -136,11 +146,9 @@
     <!-- AUTH SCREEN -->
     <div id="auth-overlay" class="modal-overlay open">
         <div class="auth-box">
-            <!-- Ícone grande de introdução -->
             <img src="icon.png" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 1rem; box-shadow: var(--shadow);" alt="Logo">
-            
-            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">Finanças Família</h1>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Controle conjunto em tempo real.</p>
+            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">Finanças Pro</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Gerenciamento familiar</p>
             
             <div class="auth-tabs">
                 <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Entrar</div>
@@ -154,20 +162,61 @@
                 <div class="form-group">
                     <input type="password" id="auth-pass" class="form-control" placeholder="Senha" required autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Acessar Sistema</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Acessar</button>
             </form>
             <div id="auth-error" style="color: var(--danger); margin-top: 15px; font-size: 0.9rem; min-height: 1.2em;"></div>
         </div>
     </div>
 
+    <!-- GROUP SETUP SCREEN -->
+    <div id="group-overlay" class="modal-overlay">
+        <div class="group-box">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">Configurar Família</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">Crie um novo grupo familiar ou entre em um existente para começar.</p>
+            
+            <div class="form-group" style="text-align: left;">
+                <label>Nome do Grupo (Ex: Família Azevedo)</label>
+                <input type="text" id="group-name-input" class="form-control" placeholder="Nome">
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="createGroup()">Criar Novo Grupo</button>
+            
+            <div style="border-top: 1px solid var(--border); margin: 1rem 0;"></div>
+            
+            <div class="form-group" style="text-align: left;">
+                <label>Ou entre com o Código do Grupo</label>
+                <input type="text" id="group-code-input" class="form-control" placeholder="Código do Grupo (ID)">
+            </div>
+            <button class="btn btn-outline" style="width: 100%;" onclick="joinGroup()">Entrar no Grupo</button>
+        </div>
+    </div>
+
     <!-- APP LAYOUT -->
-    <nav class="sidebar" id="app-sidebar">
+    <nav class="sidebar hidden" id="app-sidebar">
         <div>
             <div class="brand">Finanças</div>
-            <div style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-secondary); padding: 0.5rem; background: #f7fafc; border-radius: 8px;">
-                <div style="font-weight:bold; color:var(--primary);" id="display-email"></div>
+            
+            <!-- Grupo Info -->
+            <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">GRUPO ATUAL</div>
+                        <div id="display-group-name" style="font-weight: bold; color: var(--primary);">...</div>
+                        <div id="display-group-id" style="font-size: 0.7rem; color: var(--text-secondary); font-family: monospace;">...</div>
+                    </div>
+                    <!-- Botão Sair do Grupo -->
+                    <button onclick="leaveGroup()" title="Sair do Grupo" style="background:none; border:none; color: var(--danger); cursor: pointer; font-size: 1.2rem; line-height: 1;">✕</button>
+                </div>
+                <div style="margin-top: 5px; text-align: right;">
+                    <button onclick="leaveGroup()" style="background:none; border:none; color: var(--danger); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Sair do Grupo</button>
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                <div style="font-weight:bold; color:var(--text-primary);" id="display-email"></div>
                 <div style="font-size:0.75rem; opacity:0.7;">Logado</div>
             </div>
+
             <ul class="nav-links">
                 <li class="nav-item active" onclick="showSection('dashboard', this)"><span>📊</span> Dashboard</li>
                 <li class="nav-item" onclick="showSection('transactions', this)"><span>💸</span> Transações</li>
@@ -175,21 +224,32 @@
                 <li class="nav-item" onclick="showSection('logs', this)"><span>📜</span> Logs</li>
             </ul>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="logout()" style="width:100%">Sair</button>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-outline btn-sm" onclick="toggleTheme()" id="theme-btn">🌙 Modo Escuro</button>
+            <button class="btn btn-outline btn-sm" onclick="logout()" style="color: var(--danger); border-color: var(--danger);">Sair</button>
+        </div>
     </nav>
 
     <main class="main-content hidden" id="app-main">
         <!-- Dashboard -->
         <section id="dashboard" class="view-section">
             <div class="flex-between">
-                <h2>Visão Geral</h2>
+                <h2>Dashboard</h2>
                 <button class="btn btn-primary" onclick="openTransactionModal()">+ Nova</button>
             </div>
             <div class="summary-grid">
                 <div class="card stat-card"><h3>Saldo Atual</h3><div class="value text-primary" id="total-balance">R$ 0,00</div></div>
-                <div class="card stat-card"><h3>Entradas</h3><div class="value text-success" id="total-income">R$ 0,00</div></div>
-                <div class="card stat-card"><h3>Saídas</h3><div class="value text-danger" id="total-expense">R$ 0,00</div></div>
+                <div class="card stat-card"><h3>Entradas (Mês)</h3><div class="value text-success" id="total-income">R$ 0,00</div></div>
+                <div class="card stat-card"><h3>Saídas (Mês)</h3><div class="value text-danger" id="total-expense">R$ 0,00</div></div>
             </div>
+            
+            <!-- Gráfico Mensal -->
+            <div class="card">
+                <h3>Fluxo Mensal (Últimos 6 meses)</h3>
+                <div id="monthly-chart-container" style="height: 250px; margin-top: 1rem;"></div>
+            </div>
+
             <div class="card">
                 <h3>Últimas Transações</h3>
                 <div id="recent-transactions-list" class="transaction-list"></div>
@@ -199,8 +259,11 @@
         <!-- Transactions -->
         <section id="transactions" class="view-section hidden">
             <div class="flex-between">
-                <h2>Minhas Transações</h2>
-                <button class="btn btn-primary" onclick="openTransactionModal()">+ Adicionar</button>
+                <h2>Transações</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline" onclick="exportPDF()">📄 PDF</button>
+                    <button class="btn btn-primary" onclick="openTransactionModal()">+ Adicionar</button>
+                </div>
             </div>
             <div class="card">
                 <input type="text" id="search-input" class="form-control" placeholder="🔍 Buscar..." onkeyup="renderTransactionsList()">
@@ -315,23 +378,41 @@
 
         try {
             firebase.initializeApp(firebaseConfig);
-        } catch (e) {
-            console.error("Erro ao iniciar Firebase.", e);
-            alert("Erro de configuração do Firebase. Verifique as chaves.");
-        }
+        } catch (e) { console.error("Erro Firebase", e); }
 
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- ESTADO LOCAL ---
+        // --- ESTADO GLOBAL ---
         let state = {
             transactions: [],
             cards: [],
             logs: [],
-            user: null
+            user: null,
+            currentGroupId: null
         };
 
-        // --- AUTH LOGIC ---
+        // --- TEMA ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeBtn(savedTheme);
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeBtn(next);
+        }
+
+        function updateThemeBtn(theme) {
+            const btn = document.getElementById('theme-btn');
+            btn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+        }
+
+        // --- AUTH ---
         let authMode = 'login';
 
         function switchAuthTab(mode) {
@@ -349,13 +430,9 @@
             const errorDiv = document.getElementById('auth-error');
 
             if (authMode === 'register') {
-                auth.createUserWithEmailAndPassword(email, pass)
-                    .then(() => {})
-                    .catch(err => errorDiv.textContent = traduzirErroFirebase(err.code));
+                auth.createUserWithEmailAndPassword(email, pass).then(() => {}).catch(err => errorDiv.textContent = err.message);
             } else {
-                auth.signInWithEmailAndPassword(email, pass)
-                    .then(() => {})
-                    .catch(err => errorDiv.textContent = traduzirErroFirebase(err.code));
+                auth.signInWithEmailAndPassword(email, pass).then(() => {}).catch(err => errorDiv.textContent = err.message);
             }
         }
 
@@ -363,57 +440,146 @@
             auth.signOut();
         }
 
-        function traduzirErroFirebase(code) {
-            const map = {
-                'auth/invalid-email': 'Email inválido.', 'auth/user-disabled': 'Usuário desabilitado.', 'auth/user-not-found': 'Usuário não encontrado.', 'auth/wrong-password': 'Senha incorreta.', 'auth/email-already-in-use': 'Email já está em uso.', 'auth/weak-password': 'A senha é muito fraca.', 'auth/invalid-credential': 'Credenciais inválidas.'
-            };
-            return map[code] || code;
-        }
-
         auth.onAuthStateChanged(user => {
             if (user) {
                 state.user = user;
-                document.getElementById('auth-overlay').classList.remove('open');
-                document.getElementById('app-sidebar').classList.remove('hidden');
-                document.getElementById('app-main').classList.remove('hidden');
-                document.getElementById('loading-overlay').classList.add('hidden');
                 document.getElementById('display-email').textContent = user.email;
-                loadDataFromFirebase();
+                checkUserGroup(user.uid);
             } else {
                 state.user = null;
+                state.currentGroupId = null;
                 document.getElementById('auth-overlay').classList.add('open');
+                document.getElementById('group-overlay').classList.remove('open');
                 document.getElementById('app-sidebar').classList.add('hidden');
                 document.getElementById('app-main').classList.add('hidden');
                 document.getElementById('loading-overlay').classList.add('hidden');
             }
         });
 
-        // --- FIREBASE DATA LOGIC ---
-        function loadDataFromFirebase() {
-            db.collection('transactions').orderBy('date', 'desc').onSnapshot(snapshot => {
-                state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateUI();
-            }, err => console.error(err));
-
-            db.collection('cards').onSnapshot(snapshot => {
-                state.cards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateUI();
-            }, err => console.error(err));
-
-            db.collection('logs').orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
-                state.logs = snapshot.docs.map(doc => doc.data());
-                renderLogs();
-            }, err => console.error(err));
+        // --- GRUPO LÓGICA ---
+        async function checkUserGroup(uid) {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists && userDoc.data().groupId) {
+                    state.currentGroupId = userDoc.data().groupId;
+                    loadApp();
+                } else {
+                    document.getElementById('auth-overlay').classList.remove('open');
+                    document.getElementById('group-overlay').classList.add('open');
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Erro ao verificar grupo', 'error');
+            }
         }
 
+        async function createGroup() {
+            const name = document.getElementById('group-name-input').value;
+            if(!name) return alert("Digite um nome");
+
+            try {
+                const groupRef = await db.collection('groups').add({ name: name, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('users').doc(state.user.uid).set({ groupId: groupRef.id }, { merge: true });
+                
+                state.currentGroupId = groupRef.id;
+                showToast(`Grupo "${name}" criado!`, 'success');
+                document.getElementById('group-overlay').classList.remove('open');
+                loadApp();
+            } catch (e) { showToast('Erro ao criar grupo', 'error'); }
+        }
+
+        async function joinGroup() {
+            const code = document.getElementById('group-code-input').value.trim();
+            if(!code) return alert("Digite o código");
+
+            try {
+                const groupDoc = await db.collection('groups').doc(code).get();
+                if (groupDoc.exists) {
+                    await db.collection('users').doc(state.user.uid).set({ groupId: code }, { merge: true });
+                    state.currentGroupId = code;
+                    showToast(`Entrou no grupo: ${groupDoc.data().name}`, 'success');
+                    document.getElementById('group-overlay').classList.remove('open');
+                    loadApp();
+                } else {
+                    alert("Código de grupo inválido.");
+                }
+            } catch (e) { showToast('Erro ao entrar', 'error'); }
+        }
+
+        // --- FUNÇÃO NOVA: SAIR DO GRUPO ---
+        async function leaveGroup() {
+            if (!confirm("Tem certeza que deseja sair deste grupo? Você precisará de um código para entrar novamente.")) return;
+
+            try {
+                // Remove o campo groupId do documento do usuário
+                await db.collection('users').doc(state.user.uid).update({
+                    groupId: firebase.firestore.FieldValue.delete()
+                });
+
+                // Limpa estado local
+                state.currentGroupId = null;
+
+                // Atualiza UI: Mostra overlay de grupo, esconde app
+                document.getElementById('app-sidebar').classList.add('hidden');
+                document.getElementById('app-main').classList.add('hidden');
+                document.getElementById('group-overlay').classList.add('open');
+                
+                showToast('Você saiu do grupo.', 'info');
+            } catch (e) {
+                console.error(e);
+                showToast('Erro ao sair do grupo', 'error');
+            }
+        }
+
+        function loadApp() {
+            document.getElementById('app-sidebar').classList.remove('hidden');
+            document.getElementById('app-main').classList.remove('hidden');
+            document.getElementById('loading-overlay').classList.add('hidden');
+            
+            db.collection('groups').doc(state.currentGroupId).get().then(doc => {
+                if(doc.exists) {
+                    document.getElementById('display-group-name').textContent = doc.data().name;
+                    document.getElementById('display-group-id').textContent = `ID: ${state.currentGroupId}`;
+                }
+            });
+
+            loadGroupData();
+        }
+
+        function loadGroupData() {
+            if(!state.currentGroupId) return;
+
+            db.collection('groups').doc(state.currentGroupId).collection('transactions')
+                .orderBy('date', 'desc').onSnapshot(snapshot => {
+                state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateUI();
+            });
+
+            db.collection('groups').doc(state.currentGroupId).collection('cards')
+                .onSnapshot(snapshot => {
+                state.cards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateUI();
+            });
+
+            db.collection('groups').doc(state.currentGroupId).collection('logs')
+                .orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
+                state.logs = snapshot.docs.map(doc => doc.data());
+                renderLogs();
+            });
+        }
+
+        // --- CRUD COM SUBCOLEÇÕES ---
         async function saveTransactionToFirebase(tData, id = null) {
+            const col = db.collection('groups').doc(state.currentGroupId).collection('transactions');
             try {
                 if (id) {
-                    await db.collection('transactions').doc(id).update(tData);
+                    await col.doc(id).update(tData);
                     addLog('edit', `Editou: ${tData.desc}`);
                     showToast('Atualizado!', 'success');
                 } else {
-                    await db.collection('transactions').add({ ...tData, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    await col.add({ ...tData, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                     addLog('add', `Adicionou: ${tData.desc}`);
                     showToast('Salvo!', 'success');
                 }
@@ -423,55 +589,58 @@
         async function deleteTransactionFromFirebase(id) {
             try {
                 const t = state.transactions.find(x => x.id === id);
-                await db.collection('transactions').doc(id).delete();
+                await db.collection('groups').doc(state.currentGroupId).collection('transactions').doc(id).delete();
                 addLog('delete', `Excluiu: ${t ? t.desc : ''}`);
                 showToast('Removido.', 'info');
             } catch (e) { showToast('Erro ao excluir', 'error'); }
         }
 
         async function saveCardToFirebase(cData, id = null) {
+            const col = db.collection('groups').doc(state.currentGroupId).collection('cards');
             try {
                 if (id) {
-                    await db.collection('cards').doc(id).update(cData);
+                    await col.doc(id).update(cData);
                     addLog('edit', `Editou cartão: ${cData.name}`);
-                    showToast('Cartão atualizado!', 'success');
+                    showToast('Atualizado!', 'success');
                 } else {
-                    await db.collection('cards').add(cData);
+                    await col.add(cData);
                     addLog('add', `Criou cartão: ${cData.name}`);
-                    showToast('Cartão criado!', 'success');
+                    showToast('Criado!', 'success');
                 }
-            } catch (e) { showToast('Erro ao salvar cartão', 'error'); }
+            } catch (e) { showToast('Erro ao salvar', 'error'); }
         }
 
         async function deleteCardFromFirebase(id) {
-            const hasTrans = state.transactions.some(t => t.cardId == id);
-            if (hasTrans) return showToast('Cartão em uso. Não pode excluir.', 'error');
+            if(state.transactions.some(t => t.cardId == id)) return showToast('Cartão em uso.', 'error');
             try {
                 const c = state.cards.find(x => x.id === id);
-                await db.collection('cards').doc(id).delete();
+                await db.collection('groups').doc(state.currentGroupId).collection('cards').doc(id).delete();
                 addLog('delete', `Excluiu cartão: ${c ? c.name : ''}`);
-                showToast('Cartão removido.', 'info');
+                showToast('Removido.', 'info');
             } catch (e) { showToast('Erro ao excluir', 'error'); }
         }
 
         function addLog(type, message) {
-            db.collection('logs').add({
+            db.collection('groups').doc(state.currentGroupId).collection('logs').add({
                 type, message, user: state.user.email,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
-        
+
         function clearLogs() {
-            if(!confirm("Limpar logs?")) return;
-            alert("Para limpar logs de forma segura, acesse o console do Firebase e apague a coleção 'logs'.");
+             if(!confirm("Limpar logs?")) return;
+             db.collection('groups').doc(state.currentGroupId).collection('logs').get().then(snapshot => {
+                 snapshot.forEach(doc => doc.ref.delete());
+             });
         }
 
-        // --- UI RENDERING ---
+        // --- UI & CHARTS ---
         function updateUI() {
             renderSummary();
             renderTransactionsList();
             renderCards();
             updateCardSelect();
+            renderMonthlyChart();
         }
 
         function renderSummary() {
@@ -561,21 +730,73 @@
             if (state.logs.length === 0) { container.innerHTML = '<div class="empty-state">Sem logs.</div>'; return; }
             
             container.innerHTML = state.logs.map(log => {
-                let dateStr = '';
-                if (log.timestamp && log.timestamp.toDate) {
-                    dateStr = log.timestamp.toDate().toLocaleString('pt-BR');
-                } else if (log.timestamp) {
-                    dateStr = new Date(log.timestamp).toLocaleString('pt-BR');
-                }
-
-                const color = log.type === 'add' ? '#48bb78' : (log.type === 'delete' ? '#f56565' : '#ed8936');
+                let dateStr = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate().toLocaleString('pt-BR') : '';
+                const color = log.type === 'add' ? 'var(--success)' : (log.type === 'delete' ? 'var(--danger)' : 'var(--warning)');
                 return `
                 <div style="position: relative; padding-left: 20px; margin-bottom: 10px;">
-                    <div style="position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 2px solid white;"></div>
+                    <div style="position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 2px solid var(--bg-card);"></div>
                     <div style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr} • <strong>${log.user}</strong></div>
                     <div style="font-size: 0.95rem;">${log.message}</div>
                 </div>`;
             }).join('');
+        }
+
+        // --- GRÁFICO MENSAL ---
+        function renderMonthlyChart() {
+            const container = document.getElementById('monthly-chart-container');
+            container.innerHTML = '';
+            
+            const months = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(); d.setMonth(d.getMonth() - i);
+                const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}`;
+                const label = d.toLocaleString('pt-BR', { month: 'short' });
+                months.push({ key: k, label });
+            }
+
+            const data = months.map(m => {
+                const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key)).reduce((a,b) => a + parseFloat(b.amount), 0);
+                const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key)).reduce((a,b) => a + parseFloat(b.amount), 0);
+                return { ...m, inc, exp };
+            });
+
+            const maxVal = Math.max(...data.map(d => Math.max(d.inc, d.exp))) || 100;
+            const w = 300, h = 150, barW = 15, gap = 20, chartH = 120;
+            
+            let svg = `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}">`;
+            svg += `<rect x="10" y="0" width="10" height="10" fill="#48bb78"/> <text x="25" y="10" font-size="10" fill="var(--text-secondary)">Entradas</text>`;
+            svg += `<rect x="80" y="0" width="10" height="10" fill="#f56565"/> <text x="95" y="10" font-size="10" fill="var(--text-secondary)">Saídas</text>`;
+
+            data.forEach((d, i) => {
+                const x = 30 + i * (barW * 2 + gap);
+                const hInc = (d.inc / maxVal) * chartH, hExp = (d.exp / maxVal) * chartH;
+                const yInc = h - 20 - hInc, yExp = h - 20 - hExp;
+                
+                svg += `<rect x="${x}" y="${yInc}" width="${barW}" height="${hInc}" fill="#48bb78" rx="2"><title>Entradas: ${formatCurrency(d.inc)}</title></rect>`;
+                svg += `<rect x="${x + barW}" y="${yExp}" width="${barW}" height="${hExp}" fill="#f56565" rx="2"><title>Saídas: ${formatCurrency(d.exp)}</title></rect>`;
+                svg += `<text x="${x + barW}" y="${h - 5}" font-size="10" text-anchor="middle" fill="var(--text-secondary)">${d.label}</text>`;
+            });
+            svg += `</svg>`;
+            container.innerHTML = svg;
+        }
+
+        // --- EXPORTAR PDF ---
+        function exportPDF() {
+            const element = document.getElementById('all-transactions-list');
+            const opt = {
+                margin:       1,
+                filename:     `Relatorio_Financas_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            const clone = element.cloneNode(true);
+            const wrapper = document.createElement('div');
+            wrapper.style.padding = "20px";
+            wrapper.style.background = "white";
+            wrapper.innerHTML = `<h2>Relatório de Transações</h2><p>Gerado em: ${new Date().toLocaleString()}</p>` + clone.innerHTML;
+            
+            html2pdf().set(opt).from(wrapper).save();
         }
 
         // --- INTERACTION HELPERS ---
@@ -587,9 +808,7 @@
             if(window.innerWidth <= 768) document.getElementById('app-sidebar').classList.remove('open');
         }
 
-        function toggleSidebar() {
-            document.getElementById('app-sidebar').classList.toggle('open');
-        }
+        function toggleSidebar() { document.getElementById('app-sidebar').classList.toggle('open'); }
 
         function selectType(type, el) {
             document.querySelectorAll('.radio-option').forEach(e => e.classList.remove('selected'));
@@ -691,6 +910,8 @@
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = 0; setTimeout(() => toast.remove(), 300); }, 3000);
         }
+
+        initTheme();
     </script>
 </body>
 </html>
