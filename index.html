@@ -148,8 +148,9 @@
         <div class="auth-box">
             <img src="icon.png" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 1rem; box-shadow: var(--shadow);" alt="Logo">
             <h1 style="color: var(--primary); margin-bottom: 0.5rem;">Finanças Pro</h1>
-            <!-- INDICADOR DE STATUS DO FIREBASE -->
-            <div id="firebase-status" style="font-size: 0.8rem; color: #ed8936; margin-bottom: 1rem;">Verificando conexão com Firebase...</div>
+            
+            <!-- STATUS FIREBASE -->
+            <div id="firebase-status" style="font-size: 0.8rem; color: var(--success); margin-bottom: 0.5rem;">✓ Firebase Conectado</div>
             
             <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Gerenciamento familiar</p>
             
@@ -198,7 +199,6 @@
         <div>
             <div class="brand">Finanças</div>
             
-            <!-- Grupo Info -->
             <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border);">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div>
@@ -213,7 +213,6 @@
                 </div>
             </div>
 
-            <!-- User Info -->
             <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
                 <div style="font-weight:bold; color:var(--text-primary);" id="display-email"></div>
                 <div style="font-size:0.75rem; opacity:0.7;">Logado</div>
@@ -234,7 +233,6 @@
     </nav>
 
     <main class="main-content hidden" id="app-main">
-        <!-- Dashboard -->
         <section id="dashboard" class="view-section">
             <div class="flex-between">
                 <h2>Dashboard</h2>
@@ -245,19 +243,16 @@
                 <div class="card stat-card"><h3>Entradas (Mês)</h3><div class="value text-success" id="total-income">R$ 0,00</div></div>
                 <div class="card stat-card"><h3>Saídas (Mês)</h3><div class="value text-danger" id="total-expense">R$ 0,00</div></div>
             </div>
-            
             <div class="card">
                 <h3>Fluxo Mensal (Últimos 6 meses)</h3>
                 <div id="monthly-chart-container" style="height: 250px; margin-top: 1rem;"></div>
             </div>
-
             <div class="card">
                 <h3>Últimas Transações</h3>
                 <div id="recent-transactions-list" class="transaction-list"></div>
             </div>
         </section>
 
-        <!-- Transactions -->
         <section id="transactions" class="view-section hidden">
             <div class="flex-between">
                 <h2>Transações</h2>
@@ -272,7 +267,6 @@
             </div>
         </section>
 
-        <!-- Cards -->
         <section id="cards" class="view-section hidden">
             <div class="flex-between">
                 <h2>Meus Cartões</h2>
@@ -281,7 +275,6 @@
             <div id="cards-container" class="card-list"></div>
         </section>
 
-        <!-- Logs -->
         <section id="logs" class="view-section hidden">
             <div class="flex-between"><h2>Log de Auditoria</h2><button class="btn btn-outline btn-sm" onclick="clearLogs()">Limpar Logs</button></div>
             <div class="card">
@@ -290,7 +283,6 @@
         </section>
     </main>
 
-    <!-- MODALS -->
     <div class="modal-overlay" id="transaction-modal">
         <div class="modal">
             <div class="flex-between">
@@ -359,15 +351,12 @@
 
     <div class="toast-container" id="toast-area"></div>
 
-    <!-- FIREBASE SDKS -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
         console.log("Scripts iniciados.");
-
-        // --- CONFIGURAÇÃO DO FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyBHoW1rE9xVAiqOk1ro1SgiI4Rlq4vUx38",
             authDomain: "financas2-c616f.firebaseapp.com",
@@ -383,28 +372,34 @@
             firebase.initializeApp(firebaseConfig);
             auth = firebase.auth();
             db = firebase.firestore();
-            
-            // Atualiza status visual na tela
-            document.getElementById('firebase-status').textContent = "Status Firebase: CONECTADO (OK)";
+            document.getElementById('firebase-status').textContent = "✓ Firebase Conectado";
             document.getElementById('firebase-status').style.color = "var(--success)";
-            console.log("Firebase inicializado com sucesso.");
+            console.log("Firebase OK.");
         } catch (e) { 
-            console.error("Erro ao iniciar Firebase:", e);
-            document.getElementById('firebase-status').textContent = "ERRO CRÍTICO: Firebase não iniciou. Verifique o console (F12).";
+            console.error("Erro Firebase:", e);
+            document.getElementById('firebase-status').textContent = "X Erro no Firebase";
             document.getElementById('firebase-status').style.color = "var(--danger)";
-            alert("Erro ao iniciar o Firebase. Se você colou o código duplicado, apague tudo e cole novamente.");
+            alert("Erro crítico no Firebase: " + e.message);
         }
 
-        // --- ESTADO GLOBAL ---
-        let state = {
-            transactions: [],
-            cards: [],
-            logs: [],
-            user: null,
-            currentGroupId: null
+        let state = { transactions: [], cards: [], logs: [], user: null, currentGroupId: null };
+
+        // --- FUNÇÃO DE TESTE DE CONEXÃO ---
+        window.testConnection = function() {
+            if(!db) return alert("Banco de dados não carregou.");
+            alert("Enviando teste de conexão...");
+            
+            // Tenta escrever e ler um documento teste
+            const testRef = db.collection('test').doc('ping');
+            testRef.set({ ts: Date.now() })
+                .then(() => {
+                    alert("✅ SUCESSO! O Firebase está funcionando.\n\nSe o login não funciona, verifique se:\n1. O Email e Senha estão corretos.\n2. Você habilitou 'Email/Senha' no console do Firebase.");
+                })
+                .catch(err => {
+                    alert("❌ ERRO DE CONEXÃO DETECTADO!\n\n" + err.message + "\n\nCausa provável: Seu navegador ou Antivírus está bloqueando o tráfego para o Google. Tente desativar o AdBlocker ou usar o link do GitHub (HTTPS) em vez de abrir o arquivo direto.");
+                });
         };
 
-        // --- TEMA ---
         function initTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.setAttribute('data-theme', savedTheme);
@@ -420,13 +415,10 @@
         }
 
         function updateThemeBtn(theme) {
-            const btn = document.getElementById('theme-btn');
-            btn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+            document.getElementById('theme-btn').textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
         }
 
-        // --- AUTH ---
         let authMode = 'login';
-
         function switchAuthTab(mode) {
             authMode = mode;
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -442,71 +434,46 @@
             const errorDiv = document.getElementById('auth-error');
             const btn = document.querySelector('#auth-form button');
 
-            // Checagem de segurança: O Firebase carregou?
-            if (!auth) {
-                alert("ERRO: O objeto 'auth' não existe. O script do Firebase falhou ao carregar ou está duplicado.");
-                return;
-            }
+            if (!auth) return alert("Erro: Objeto Auth não encontrado.");
 
-            // Feedback visual
             btn.textContent = "Processando...";
             btn.disabled = true;
             errorDiv.textContent = "";
 
-            console.log("Iniciando requisição de auth para:", email);
-
-            // TIMEOUT DE 5 SEGUNDOS (REDUZIDO PARA DIAGNÓSTICO RÁPIDO)
+            // TIMEOUT LONGO (15s) PARA NÃO TRAPAR USUÁRIO COM INTERNET LENTA
             const timeoutId = setTimeout(() => {
-                console.error("Timeout de 5s atingido.");
-                alert("O login parou de responder (Timeout de 5 segundos).\n\nIsso geralmente significa BLOQUEIO DE REDE.\n\nPOR FAVOR, FAÇA ISSO:\n1. Aperte a tecla F12 no seu teclado.\n2. Vá na aba 'Console'.\n3. Veja se tem um erro vermelho (ex: 'Network Error', 'CORS').\n\nCausas comuns:\n- AdBlocker ativo.\n- Abrindo arquivo direto (file://) em vez do GitHub.\n- Proxy da empresa bloqueando Google.");
-                
-                // Reseta botão
+                alert("O login está demorando muito (Timeout).\n\nSolução: Clique no botão '🧪 Testar Conexão' abaixo do título 'Finanças Pro'. Se o teste der erro, é bloqueio de rede.");
                 btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
                 btn.disabled = false;
-            }, 5000);
+            }, 15000);
 
-            let authPromise;
-            if (authMode === 'register') {
-                authPromise = auth.createUserWithEmailAndPassword(email, pass);
-            } else {
-                authPromise = auth.signInWithEmailAndPassword(email, pass);
-            }
+            let authPromise = authMode === 'register' 
+                ? auth.createUserWithEmailAndPassword(email, pass) 
+                : auth.signInWithEmailAndPassword(email, pass);
 
             authPromise
                 .then(() => {
-                    console.log("Auth retornou sucesso.");
                     clearTimeout(timeoutId);
-                    // O listener vai cuidar do resto
+                    // Listener cuida do resto
                 })
                 .catch(err => {
-                    console.error("Auth retornou erro:", err);
                     clearTimeout(timeoutId);
-                    
-                    const msg = err.message || "Erro desconhecido.";
-                    errorDiv.textContent = msg;
-                    alert("Erro: " + msg); 
-                    
+                    errorDiv.textContent = err.message;
                     btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
                     btn.disabled = false;
                 });
         }
 
-        function logout() {
-            if(auth) auth.signOut();
-        }
+        function logout() { if(auth) auth.signOut(); }
 
         if(auth) {
             auth.onAuthStateChanged(user => {
-                console.log("Auth state changed:", user ? user.email : "Deslogado");
                 if (user) {
                     state.user = user;
                     document.getElementById('display-email').textContent = user.email;
-                    const btn = document.querySelector('#auth-form button');
-                    if(btn) { btn.textContent = "Acessar"; btn.disabled = false; }
                     checkUserGroup(user.uid);
                 } else {
-                    state.user = null;
-                    state.currentGroupId = null;
+                    state.user = null; state.currentGroupId = null;
                     document.getElementById('auth-overlay').classList.add('open');
                     document.getElementById('group-overlay').classList.remove('open');
                     document.getElementById('app-sidebar').classList.add('hidden');
@@ -516,25 +483,21 @@
             });
         }
 
-        // --- GRUPO LÓGICA ---
         async function checkUserGroup(uid) {
-            console.log("Verificando grupo para UID:", uid);
             document.getElementById('loading-overlay').classList.remove('hidden');
             try {
                 const userDoc = await db.collection('users').doc(uid).get();
                 if (userDoc.exists && userDoc.data().groupId) {
                     state.currentGroupId = userDoc.data().groupId;
-                    console.log("Grupo encontrado:", state.currentGroupId);
                     loadApp();
                 } else {
-                    console.log("Usuário sem grupo. Mostrando tela de grupo.");
                     document.getElementById('auth-overlay').classList.remove('open');
                     document.getElementById('group-overlay').classList.add('open');
                     document.getElementById('loading-overlay').classList.add('hidden');
                 }
             } catch (e) {
-                console.error("Erro crítico em checkUserGroup:", e);
-                alert("Erro ao carregar dados do usuário: " + e.message);
+                console.error(e);
+                alert("Erro ao verificar grupo: " + e.message);
                 document.getElementById('loading-overlay').classList.add('hidden');
             }
         }
@@ -542,25 +505,19 @@
         async function createGroup() {
             const name = document.getElementById('group-name-input').value;
             if(!name) return alert("Digite um nome");
-
             try {
                 const groupRef = await db.collection('groups').add({ name: name, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                 await db.collection('users').doc(state.user.uid).set({ groupId: groupRef.id }, { merge: true });
-                
                 state.currentGroupId = groupRef.id;
                 showToast(`Grupo "${name}" criado!`, 'success');
                 document.getElementById('group-overlay').classList.remove('open');
                 loadApp();
-            } catch (e) { 
-                console.error(e);
-                alert("Erro ao criar grupo: " + e.message);
-            }
+            } catch (e) { alert("Erro ao criar grupo: " + e.message); }
         }
 
         async function joinGroup() {
             const code = document.getElementById('group-code-input').value.trim();
             if(!code) return alert("Digite o código");
-
             try {
                 const groupDoc = await db.collection('groups').doc(code).get();
                 if (groupDoc.exists) {
@@ -569,69 +526,45 @@
                     showToast(`Entrou no grupo: ${groupDoc.data().name}`, 'success');
                     document.getElementById('group-overlay').classList.remove('open');
                     loadApp();
-                } else {
-                    alert("Código de grupo inválido.");
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao entrar no grupo: " + e.message);
-            }
+                } else { alert("Código inválido."); }
+            } catch (e) { alert("Erro ao entrar: " + e.message); }
         }
 
         async function leaveGroup() {
-            if (!confirm("Tem certeza que deseja sair deste grupo?")) return;
+            if (!confirm("Sair do grupo?")) return;
             try {
-                await db.collection('users').doc(state.user.uid).update({
-                    groupId: firebase.firestore.FieldValue.delete()
-                });
+                await db.collection('users').doc(state.user.uid).update({ groupId: firebase.firestore.FieldValue.delete() });
                 state.currentGroupId = null;
                 document.getElementById('app-sidebar').classList.add('hidden');
                 document.getElementById('app-main').classList.add('hidden');
                 document.getElementById('group-overlay').classList.add('open');
-                showToast('Você saiu do grupo.', 'info');
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao sair: " + e.message);
-            }
+                showToast('Você saiu.', 'info');
+            } catch (e) { alert("Erro ao sair: " + e.message); }
         }
 
         function loadApp() {
             document.getElementById('app-sidebar').classList.remove('hidden');
             document.getElementById('app-main').classList.remove('hidden');
             document.getElementById('loading-overlay').classList.add('hidden');
-            
             db.collection('groups').doc(state.currentGroupId).get().then(doc => {
                 if(doc.exists) {
                     document.getElementById('display-group-name').textContent = doc.data().name;
                     document.getElementById('display-group-id').textContent = `ID: ${state.currentGroupId}`;
                 }
             }).catch(e => console.error(e));
-
             loadGroupData();
         }
 
         function loadGroupData() {
             if(!state.currentGroupId) return;
-
-            db.collection('groups').doc(state.currentGroupId).collection('transactions')
-                .orderBy('date', 'desc').onSnapshot(snapshot => {
-                state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateUI();
-            }, err => {
-                console.error("Erro ouvindo transações:", err);
-                alert("Erro de permissão ao ler transações. Verifique as regras do Firestore.");
-            });
-
-            db.collection('groups').doc(state.currentGroupId).collection('cards')
-                .onSnapshot(snapshot => {
-                state.cards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateUI();
+            db.collection('groups').doc(state.currentGroupId).collection('transactions').orderBy('date', 'desc').onSnapshot(s => {
+                state.transactions = s.docs.map(doc => ({ id: doc.id, ...doc.data() })); updateUI();
+            }, err => { console.error(err); alert("Erro ao carregar transações."); });
+            db.collection('groups').doc(state.currentGroupId).collection('cards').onSnapshot(s => {
+                state.cards = s.docs.map(doc => ({ id: doc.id, ...doc.data() })); updateUI();
             }, err => console.error(err));
-
-            db.collection('groups').doc(state.currentGroupId).collection('logs')
-                .orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
-                state.logs = snapshot.docs.map(doc => doc.data());
-                renderLogs();
+            db.collection('groups').doc(state.currentGroupId).collection('logs').orderBy('timestamp', 'desc').limit(50).onSnapshot(s => {
+                state.logs = s.docs.map(doc => doc.data()); renderLogs();
             }, err => console.error(err));
         }
 
@@ -639,75 +572,42 @@
         async function saveTransactionToFirebase(tData, id = null) {
             const col = db.collection('groups').doc(state.currentGroupId).collection('transactions');
             try {
-                if (id) {
-                    await col.doc(id).update(tData);
-                    addLog('edit', `Editou: ${tData.desc}`);
-                    showToast('Atualizado!', 'success');
-                } else {
-                    await col.add({ ...tData, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                    addLog('add', `Adicionou: ${tData.desc}`);
-                    showToast('Salvo!', 'success');
-                }
+                if (id) { await col.doc(id).update(tData); addLog('edit', `Editou: ${tData.desc}`); showToast('Atualizado!', 'success'); } 
+                else { await col.add({ ...tData, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); addLog('add', `Adicionou: ${tData.desc}`); showToast('Salvo!', 'success'); }
             } catch (e) { showToast('Erro ao salvar: ' + e.message, 'error'); }
         }
-
         async function deleteTransactionFromFirebase(id) {
             try {
                 const t = state.transactions.find(x => x.id === id);
                 await db.collection('groups').doc(state.currentGroupId).collection('transactions').doc(id).delete();
-                addLog('delete', `Excluiu: ${t ? t.desc : ''}`);
-                showToast('Removido.', 'info');
+                addLog('delete', `Excluiu: ${t ? t.desc : ''}`); showToast('Removido.', 'info');
             } catch (e) { showToast('Erro ao excluir', 'error'); }
         }
-
         async function saveCardToFirebase(cData, id = null) {
             const col = db.collection('groups').doc(state.currentGroupId).collection('cards');
             try {
-                if (id) {
-                    await col.doc(id).update(cData);
-                    addLog('edit', `Editou cartão: ${cData.name}`);
-                    showToast('Atualizado!', 'success');
-                } else {
-                    await col.add(cData);
-                    addLog('add', `Criou cartão: ${cData.name}`);
-                    showToast('Criado!', 'success');
-                }
+                if (id) { await col.doc(id).update(cData); addLog('edit', `Editou cartão: ${cData.name}`); showToast('Atualizado!', 'success'); } 
+                else { await col.add(cData); addLog('add', `Criou cartão: ${cData.name}`); showToast('Criado!', 'success'); }
             } catch (e) { showToast('Erro ao salvar cartão', 'error'); }
         }
-
         async function deleteCardFromFirebase(id) {
             if(state.transactions.some(t => t.cardId == id)) return showToast('Cartão em uso.', 'error');
             try {
                 const c = state.cards.find(x => x.id === id);
                 await db.collection('groups').doc(state.currentGroupId).collection('cards').doc(id).delete();
-                addLog('delete', `Excluiu cartão: ${c ? c.name : ''}`);
-                showToast('Removido.', 'info');
+                addLog('delete', `Excluiu cartão: ${c ? c.name : ''}`); showToast('Removido.', 'info');
             } catch (e) { showToast('Erro ao excluir', 'error'); }
         }
-
         function addLog(type, message) {
-            db.collection('groups').doc(state.currentGroupId).collection('logs').add({
-                type, message, user: state.user.email,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            db.collection('groups').doc(state.currentGroupId).collection('logs').add({ type, message, user: state.user.email, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         }
-
         function clearLogs() {
              if(!confirm("Limpar logs?")) return;
-             db.collection('groups').doc(state.currentGroupId).collection('logs').get().then(snapshot => {
-                 snapshot.forEach(doc => doc.ref.delete());
-             });
+             db.collection('groups').doc(state.currentGroupId).collection('logs').get().then(s => { s.forEach(d => d.ref.delete()); });
         }
 
         // --- UI ---
-        function updateUI() {
-            renderSummary();
-            renderTransactionsList();
-            renderCards();
-            updateCardSelect();
-            renderMonthlyChart();
-        }
-
+        function updateUI() { renderSummary(); renderTransactionsList(); renderCards(); updateCardSelect(); renderMonthlyChart(); }
         function renderSummary() {
             const income = state.transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + parseFloat(t.amount), 0);
             const expense = state.transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + parseFloat(t.amount), 0);
@@ -715,100 +615,45 @@
             document.getElementById('total-expense').textContent = formatCurrency(expense);
             document.getElementById('total-balance').textContent = formatCurrency(income - expense);
         }
-
         function renderTransactionsList() {
             const list = document.getElementById('all-transactions-list');
             const recent = document.getElementById('recent-transactions-list');
             const search = document.getElementById('search-input').value.toLowerCase();
             const filtered = state.transactions.filter(t => t.desc.toLowerCase().includes(search) || t.category.toLowerCase().includes(search));
-
             const generateHTML = (t, showActions = false) => {
-                const isExpense = t.type === 'expense';
-                const colorClass = isExpense ? 'text-danger' : 'text-success';
-                const sign = isExpense ? '-' : '+';
-                let cardTag = '';
-                if (t.cardId) {
-                    const card = state.cards.find(c => c.id == t.cardId);
-                    if (card) cardTag = `<span class="tag" style="border:1px solid ${card.color}; color:${card.color}">${card.name}</span>`;
-                }
-                const actionBtns = showActions ? `
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTransactionFromFirebase('${t.id}')">🗑</button>
-                    </div>` : '';
-
-                return `
-                <div class="list-item">
-                    <div class="item-info">
-                        <h4>${t.desc} ${cardTag}</h4>
-                        <p>${formatDate(t.date)} • ${t.category}</p>
-                    </div>
-                    <div style="display:flex; align-items:center;">
-                        <div class="item-amount ${colorClass}" style="margin-right: 15px;">${sign} ${formatCurrency(t.amount, false)}</div>
-                        ${actionBtns}
-                    </div>
-                </div>`;
+                const isExpense = t.type === 'expense'; const colorClass = isExpense ? 'text-danger' : 'text-success'; const sign = isExpense ? '-' : '+';
+                let cardTag = ''; if (t.cardId) { const card = state.cards.find(c => c.id == t.cardId); if (card) cardTag = `<span class="tag" style="border:1px solid ${card.color}; color:${card.color}">${card.name}</span>`; }
+                const actionBtns = showActions ? `<div class="action-buttons"><button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteTransactionFromFirebase('${t.id}')">🗑</button></div>` : '';
+                return `<div class="list-item"><div class="item-info"><h4>${t.desc} ${cardTag}</h4><p>${formatDate(t.date)} • ${t.category}</p></div><div style="display:flex; align-items:center;"><div class="item-amount ${colorClass}" style="margin-right: 15px;">${sign} ${formatCurrency(t.amount, false)}</div>${actionBtns}</div></div>`;
             };
-
             list.innerHTML = filtered.length ? filtered.map(t => generateHTML(t, true)).join('') : '<div class="empty-state">Nada encontrado.</div>';
             recent.innerHTML = state.transactions.slice(0, 5).map(t => generateHTML(t, false)).join('');
         }
-
         function renderCards() {
             const container = document.getElementById('cards-container');
             if (state.cards.length === 0) { container.innerHTML = '<div class="empty-state">Sem cartões.</div>'; return; }
-
             container.innerHTML = state.cards.map(card => {
                 const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((acc, t) => acc + parseFloat(t.amount), 0);
                 const percent = Math.min((spent / card.limit) * 100, 100);
-                return `
-                <div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
-                    <div class="flex-between" style="margin:0; color:white;">
-                        <div class="card-name">${card.name}</div>
-                        <div>
-                            <button onclick="openCardModal('${card.id}')" style="background:none; border:none; color:white; cursor:pointer; margin-right:10px;">✏️</button>
-                            <button onclick="deleteCardFromFirebase('${card.id}')" style="background:none; border:none; color:white; cursor:pointer;">🗑</button>
-                        </div>
-                    </div>
-                    <div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">•••• •••• •••• ••••</div>
-                    <div class="card-limit-info">
-                        <div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);">
-                            <span>Gasto: ${formatCurrency(spent, false)}</span>
-                            <span>Limite: ${formatCurrency(card.limit, false)}</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-                </div>`;
+                return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);"><div class="flex-between" style="margin:0; color:white;"><div class="card-name">${card.name}</div><div><button onclick="openCardModal('${card.id}')" style="background:none; border:none; color:white; cursor:pointer; margin-right:10px;">✏️</button><button onclick="deleteCardFromFirebase('${card.id}')" style="background:none; border:none; color:white; cursor:pointer;">🗑</button></div></div><div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">•••• •••• •••• ••••</div><div class="card-limit-info"><div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);"><span>Gasto: ${formatCurrency(spent, false)}</span><span>Limite: ${formatCurrency(card.limit, false)}</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percent}%"></div></div></div></div>`;
             }).join('');
         }
-
         function updateCardSelect() {
             const select = document.getElementById('t-card');
             select.innerHTML = '<option value="">Dinheiro / Débito</option>';
             state.cards.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
         }
-
         function renderLogs() {
             const container = document.getElementById('logs-list');
             if (state.logs.length === 0) { container.innerHTML = '<div class="empty-state">Sem logs.</div>'; return; }
-            
             container.innerHTML = state.logs.map(log => {
                 let dateStr = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate().toLocaleString('pt-BR') : '';
                 const color = log.type === 'add' ? 'var(--success)' : (log.type === 'delete' ? 'var(--danger)' : 'var(--warning)');
-                return `
-                <div style="position: relative; padding-left: 20px; margin-bottom: 10px;">
-                    <div style="position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 2px solid var(--bg-card);"></div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr} • <strong>${log.user}</strong></div>
-                    <div style="font-size: 0.95rem;">${log.message}</div>
-                </div>`;
+                return `<div style="position: relative; padding-left: 20px; margin-bottom: 10px;"><div style="position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 2px solid var(--bg-card);"></div><div style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr} • <strong>${log.user}</strong></div><div style="font-size: 0.95rem;">${log.message}</div></div>`;
             }).join('');
         }
-
         function renderMonthlyChart() {
-            const container = document.getElementById('monthly-chart-container');
-            container.innerHTML = '';
+            const container = document.getElementById('monthly-chart-container'); container.innerHTML = '';
             const months = [];
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -837,14 +682,9 @@
             svg += `</svg>`;
             container.innerHTML = svg;
         }
-
         function exportPDF() {
             const element = document.getElementById('all-transactions-list');
-            const opt = {
-                margin: 1, filename: `Relatorio_Financas_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
+            const opt = { margin: 1, filename: `Relatorio_Financas_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
             const clone = element.cloneNode(true);
             const wrapper = document.createElement('div');
             wrapper.style.padding = "20px"; wrapper.style.background = "white";
@@ -859,16 +699,13 @@
             navEl.classList.add('active');
             if(window.innerWidth <= 768) document.getElementById('app-sidebar').classList.remove('open');
         }
-
         function toggleSidebar() { document.getElementById('app-sidebar').classList.toggle('open'); }
-
         function selectType(type, el) {
             document.querySelectorAll('.radio-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
             document.getElementById('card-select-group').style.display = type === 'expense' ? 'block' : 'none';
             if(type === 'income') document.getElementById('t-card').value = "";
         }
-
         function closeModals() {
             document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('open'));
             document.getElementById('transaction-form').reset();
@@ -878,7 +715,6 @@
             document.getElementById('t-date').valueAsDate = new Date();
             selectType('income', document.getElementById('opt-income'));
         }
-
         function openTransactionModal(id = null) {
             document.getElementById('transaction-modal').classList.add('open');
             document.getElementById('t-date').valueAsDate = new Date();
@@ -900,7 +736,6 @@
             }
             updateCardSelect();
         }
-
         function openCardModal(id = null) {
             document.getElementById('card-modal').classList.add('open');
             if(id) {
@@ -915,44 +750,24 @@
                 document.getElementById('c-id').value = "";
             }
         }
-
         document.getElementById('transaction-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('t-id').value;
             const type = document.querySelector('.radio-option.selected').id === 'opt-income' ? 'income' : 'expense';
             const cardId = document.getElementById('t-card').value;
-            const tData = {
-                type, desc: document.getElementById('t-desc').value,
-                amount: parseFloat(document.getElementById('t-amount').value),
-                category: document.getElementById('t-category').value,
-                date: document.getElementById('t-date').value,
-                cardId: cardId || null
-            };
+            const tData = { type, desc: document.getElementById('t-desc').value, amount: parseFloat(document.getElementById('t-amount').value), category: document.getElementById('t-category').value, date: document.getElementById('t-date').value, cardId: cardId || null };
             saveTransactionToFirebase(tData, id || null);
             closeModals();
         });
-
         document.getElementById('card-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('c-id').value;
-            const cData = {
-                name: document.getElementById('c-name').value,
-                limit: parseFloat(document.getElementById('c-limit').value),
-                color: document.getElementById('c-color').value
-            };
+            const cData = { name: document.getElementById('c-name').value, limit: parseFloat(document.getElementById('c-limit').value), color: document.getElementById('c-color').value };
             saveCardToFirebase(cData, id || null);
             closeModals();
         });
-
-        function formatCurrency(val, withSymbol = true) {
-            const formatted = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            return withSymbol ? `R$ ${formatted}` : formatted;
-        }
-        function formatDate(isoDate) {
-            if(!isoDate) return '';
-            const [y, m, d] = isoDate.split('-');
-            return `${d}/${m}/${y}`;
-        }
+        function formatCurrency(val, withSymbol = true) { const formatted = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return withSymbol ? `R$ ${formatted}` : formatted; }
+        function formatDate(isoDate) { if(!isoDate) return ''; const [y, m, d] = isoDate.split('-'); return `${d}/${m}/${y}`; }
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toast-area');
             const toast = document.createElement('div');
@@ -962,7 +777,6 @@
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = 0; setTimeout(() => toast.remove(), 300); }, 3000);
         }
-
         initTheme();
     </script>
 </body>
