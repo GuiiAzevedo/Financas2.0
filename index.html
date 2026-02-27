@@ -1,371 +1,6 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#5a67d8">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Finanças Família Pro</title>
-
-    <!-- Ícone e Manifesto -->
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Biblioteca para PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
-        /* --- VARIÁVEIS DE TEMA (CLARO) --- */
-        :root {
-            --bg-body: #f4f6f8;
-            --bg-card: #ffffff;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --primary: #5a67d8;
-            --primary-hover: #4c51bf;
-            --success: #48bb78;
-            --danger: #f56565;
-            --warning: #ed8936;
-            --info: #4299e1;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        /* --- VARIÁVEIS DE TEMA (ESCURO) --- */
-        [data-theme="dark"] {
-            --bg-body: #1a202c;
-            --bg-card: #2d3748;
-            --text-primary: #f7fafc;
-            --text-secondary: #a0aec0;
-            --border: #4a5568;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.5; height: 100vh; display: flex; overflow: hidden; transition: background 0.3s, color 0.3s; }
-
-        /* Layout */
-        .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; }
-        .main-content { flex: 1; overflow-y: auto; padding: 2rem; position: relative; scroll-behavior: smooth; }
-
-        /* Nav */
-        .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
-        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-        .nav-item { padding: 0.75rem 1rem; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 10px; }
-        .nav-item:hover { background-color: var(--bg-body); color: var(--primary); }
-        .nav-item.active { background-color: var(--primary); color: white; }
-
-        /* Components */
-        .btn { padding: 0.75rem 1.5rem; border-radius: var(--radius); border: none; cursor: pointer; font-weight: 600; transition: transform 0.1s, opacity 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
-        .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
-        .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
-
-        /* Dashboard */
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card h3 { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem; }
-        .stat-card .value { font-size: 1.75rem; font-weight: 700; }
-        .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); }
-
-        /* Lists */
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
-        .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; }
-        .item-info p { font-size: 0.85rem; color: var(--text-secondary); }
-        .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-body); color: var(--text-secondary); margin-left: 8px; }
-        .action-buttons { display: flex; gap: 5px; }
-
-        /* Cards UI */
-        .credit-card-ui { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: var(--shadow); }
-        .progress-bar-bg { background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
-        .progress-bar-fill { background: white; height: 100%; border-radius: 4px; width: 0%; transition: width 0.5s ease; }
-
-        /* Login & Group */
-        #auth-overlay, #group-overlay { background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; position: fixed; top:0; left:0; width:100%; height:100%; }
-        .auth-box, .group-box { background: var(--bg-card); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; }
-        .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-        .auth-tab { flex: 1; padding: 0.5rem; cursor: pointer; color: var(--text-secondary); }
-        .auth-tab.active { border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: bold; }
-
-        /* Modals */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-        .modal-overlay.open { opacity: 1; pointer-events: auto; }
-        .modal { background: var(--bg-card); width: 100%; max-width: 500px; border-radius: var(--radius); padding: 2rem; transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto;}
-        .modal-overlay.open .modal { transform: translateY(0); }
-        .form-group { margin-bottom: 1rem; text-align: left; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
-        .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; background: var(--bg-body); color: var(--text-primary); }
-        .radio-group { display: flex; gap: 1rem; }
-        .radio-option { flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; }
-        .radio-option.selected { border-color: var(--primary); background: var(--primary); color: white; }
-
-        /* Toast */
-        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: var(--bg-card); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 4px; box-shadow: var(--shadow); min-width: 250px; animation: slideIn 0.3s ease; color: var(--text-primary); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .hidden { display: none !important; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
-        
-        /* Loading */
-        #loading-overlay { position: fixed; inset: 0; background: var(--bg-body); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--bg-card); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Mobile */
-        .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; min-height: 100vh; }
-            .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
-            .sidebar.open { transform: translateX(260px); left: -260px; }
-            .mobile-menu-btn { display: flex; }
-            .nav-links { flex-direction: column; overflow-x: visible; padding-bottom: 5px; }
-            .main-content { padding: 5rem 1rem 1rem 1rem; }
-            .summary-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- LOADING -->
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <p style="margin-top: 1rem; color: var(--text-secondary);">Carregando...</p>
-    </div>
-
-    <!-- MOBILE MENU BUTTON -->
-    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-
-    <!-- AUTH SCREEN -->
-    <div id="auth-overlay" class="modal-overlay open">
-        <div class="auth-box">
-            <img src="icon.png" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 1rem; box-shadow: var(--shadow);" alt="Logo">
-            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">Finanças Pro</h1>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Gerenciamento familiar</p>
-            
-            <div class="auth-tabs">
-                <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Entrar</div>
-                <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Criar Conta</div>
-            </div>
-
-            <form id="auth-form" onsubmit="handleAuth(event)">
-                <div class="form-group">
-                    <input type="email" id="auth-email" class="form-control" placeholder="Seu Email" required autocomplete="email">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="auth-pass" class="form-control" placeholder="Senha" required autocomplete="current-password">
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Acessar</button>
-            </form>
-            <div id="auth-error" style="color: var(--danger); margin-top: 15px; font-size: 0.9rem; min-height: 1.2em;"></div>
-        </div>
-    </div>
-
-    <!-- GROUP SETUP SCREEN -->
-    <div id="group-overlay" class="modal-overlay">
-        <div class="group-box">
-            <h2 style="color: var(--primary); margin-bottom: 1rem;">Configurar Família</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">Crie um novo grupo familiar ou entre em um existente para começar.</p>
-            
-            <div class="form-group" style="text-align: left;">
-                <label>Nome do Grupo (Ex: Família Azevedo)</label>
-                <input type="text" id="group-name-input" class="form-control" placeholder="Nome">
-            </div>
-            <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="createGroup()">Criar Novo Grupo</button>
-            
-            <div style="border-top: 1px solid var(--border); margin: 1rem 0;"></div>
-            
-            <div class="form-group" style="text-align: left;">
-                <label>Ou entre com o Código do Grupo</label>
-                <input type="text" id="group-code-input" class="form-control" placeholder="Código do Grupo (ID)">
-            </div>
-            <button class="btn btn-outline" style="width: 100%;" onclick="joinGroup()">Entrar no Grupo</button>
-        </div>
-    </div>
-
-    <!-- APP LAYOUT -->
-    <nav class="sidebar hidden" id="app-sidebar">
-        <div>
-            <div class="brand">Finanças</div>
-            
-            <!-- Grupo Info -->
-            <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">GRUPO ATUAL</div>
-                        <div id="display-group-name" style="font-weight: bold; color: var(--primary);">...</div>
-                        <div id="display-group-id" style="font-size: 0.7rem; color: var(--text-secondary); font-family: monospace;">...</div>
-                    </div>
-                    <!-- Botão Sair do Grupo -->
-                    <button onclick="leaveGroup()" title="Sair do Grupo" style="background:none; border:none; color: var(--danger); cursor: pointer; font-size: 1.2rem; line-height: 1;">✕</button>
-                </div>
-                <div style="margin-top: 5px; text-align: right;">
-                    <button onclick="leaveGroup()" style="background:none; border:none; color: var(--danger); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Sair do Grupo</button>
-                </div>
-            </div>
-
-            <!-- User Info -->
-            <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
-                <div style="font-weight:bold; color:var(--text-primary);" id="display-email"></div>
-                <div style="font-size:0.75rem; opacity:0.7;">Logado</div>
-            </div>
-
-            <ul class="nav-links">
-                <li class="nav-item active" onclick="showSection('dashboard', this)"><span>📊</span> Dashboard</li>
-                <li class="nav-item" onclick="showSection('transactions', this)"><span>💸</span> Transações</li>
-                <li class="nav-item" onclick="showSection('cards', this)"><span>💳</span> Cartões</li>
-                <li class="nav-item" onclick="showSection('logs', this)"><span>📜</span> Logs</li>
-            </ul>
-        </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button class="btn btn-outline btn-sm" onclick="toggleTheme()" id="theme-btn">🌙 Modo Escuro</button>
-            <button class="btn btn-outline btn-sm" onclick="logout()" style="color: var(--danger); border-color: var(--danger);">Sair</button>
-        </div>
-    </nav>
-
-    <main class="main-content hidden" id="app-main">
-        <!-- Dashboard -->
-        <section id="dashboard" class="view-section">
-            <div class="flex-between">
-                <h2>Dashboard</h2>
-                <button class="btn btn-primary" onclick="openTransactionModal()">+ Nova</button>
-            </div>
-            <div class="summary-grid">
-                <div class="card stat-card"><h3>Saldo Atual</h3><div class="value text-primary" id="total-balance">R$ 0,00</div></div>
-                <div class="card stat-card"><h3>Entradas (Mês)</h3><div class="value text-success" id="total-income">R$ 0,00</div></div>
-                <div class="card stat-card"><h3>Saídas (Mês)</h3><div class="value text-danger" id="total-expense">R$ 0,00</div></div>
-            </div>
-            
-            <!-- Gráfico Mensal -->
-            <div class="card">
-                <h3>Fluxo Mensal (Últimos 6 meses)</h3>
-                <div id="monthly-chart-container" style="height: 250px; margin-top: 1rem;"></div>
-            </div>
-
-            <div class="card">
-                <h3>Últimas Transações</h3>
-                <div id="recent-transactions-list" class="transaction-list"></div>
-            </div>
-        </section>
-
-        <!-- Transactions -->
-        <section id="transactions" class="view-section hidden">
-            <div class="flex-between">
-                <h2>Transações</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-outline" onclick="exportPDF()">📄 PDF</button>
-                    <button class="btn btn-primary" onclick="openTransactionModal()">+ Adicionar</button>
-                </div>
-            </div>
-            <div class="card">
-                <input type="text" id="search-input" class="form-control" placeholder="🔍 Buscar..." onkeyup="renderTransactionsList()">
-                <div id="all-transactions-list" class="transaction-list" style="margin-top: 1rem;"></div>
-            </div>
-        </section>
-
-        <!-- Cards -->
-        <section id="cards" class="view-section hidden">
-            <div class="flex-between">
-                <h2>Meus Cartões</h2>
-                <button class="btn btn-primary" onclick="openCardModal()">+ Novo Cartão</button>
-            </div>
-            <div id="cards-container" class="card-list"></div>
-        </section>
-
-        <!-- Logs -->
-        <section id="logs" class="view-section hidden">
-            <div class="flex-between"><h2>Log de Auditoria</h2><button class="btn btn-outline btn-sm" onclick="clearLogs()">Limpar Logs</button></div>
-            <div class="card">
-                <div id="logs-list" style="display: flex; flex-direction: column; gap: 1rem; border-left: 2px solid var(--border); padding-left: 20px; margin-left: 10px;"></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- MODALS -->
-    <!-- Transaction Modal -->
-    <div class="modal-overlay" id="transaction-modal">
-        <div class="modal">
-            <div class="flex-between">
-                <h3 id="t-modal-title">Nova Transação</h3>
-                <button class="btn btn-sm btn-outline" onclick="closeModals()">✕</button>
-            </div>
-            <form id="transaction-form">
-                <input type="hidden" id="t-id">
-                <div class="form-group">
-                    <label>Tipo</label>
-                    <div class="radio-group">
-                        <div class="radio-option selected" onclick="selectType('income', this)" id="opt-income">Entrada</div>
-                        <div class="radio-option" onclick="selectType('expense', this)" id="opt-expense">Saída</div>
-                    </div>
-                </div>
-                <div class="form-group"><label>Descrição</label><input type="text" id="t-desc" class="form-control" required></div>
-                <div class="form-group"><label>Valor</label><input type="number" step="0.01" id="t-amount" class="form-control" required></div>
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select id="t-category" class="form-control">
-                        <option value="Moradia">🏠 Moradia</option>
-                        <option value="Alimentação">🍔 Alimentação</option>
-                        <option value="Transporte">🚗 Transporte</option>
-                        <option value="Lazer">🎉 Lazer</option>
-                        <option value="Saúde">💊 Saúde</option>
-                        <option value="Salário">💰 Salário</option>
-                        <option value="Outros">📦 Outros</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Data</label><input type="date" id="t-date" class="form-control" required></div>
-                <div class="form-group" id="card-select-group">
-                    <label>Pagar com Cartão?</label>
-                    <select id="t-card" class="form-control"><option value="">Dinheiro / Débito</option></select>
-                </div>
-                <div style="text-align: right; margin-top: 1.5rem;">
-                    <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Card Modal -->
-    <div class="modal-overlay" id="card-modal">
-        <div class="modal">
-            <div class="flex-between">
-                <h3 id="c-modal-title">Novo Cartão</h3>
-                <button class="btn btn-sm btn-outline" onclick="closeModals()">✕</button>
-            </div>
-            <form id="card-form">
-                <input type="hidden" id="c-id">
-                <div class="form-group"><label>Nome</label><input type="text" id="c-name" class="form-control" required></div>
-                <div class="form-group"><label>Limite</label><input type="number" step="0.01" id="c-limit" class="form-control" required></div>
-                <div class="form-group">
-                    <label>Cor</label>
-                    <select id="c-color" class="form-control">
-                        <option value="#667eea">Roxo</option><option value="#48bb78">Verde</option><option value="#ed8936">Laranja</option><option value="#f56565">Vermelho</option><option value="#4299e1">Azul</option><option value="#2d3748">Preto</option>
-                    </select>
-                </div>
-                <div style="text-align: right; margin-top: 1.5rem;">
-                    <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="toast-container" id="toast-area"></div>
-
-    <!-- FIREBASE SDKS -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
     <script>
+        console.log("Scripts carregados.");
+
         // --- CONFIGURAÇÃO DO FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyBHoW1rE9xVAiqOk1ro1SgiI4Rlq4vUx38",
@@ -378,7 +13,11 @@
 
         try {
             firebase.initializeApp(firebaseConfig);
-        } catch (e) { console.error("Erro Firebase", e); }
+            console.log("Firebase inicializado.");
+        } catch (e) { 
+            console.error("Erro ao iniciar Firebase.", e);
+            alert("Erro crítico ao iniciar o Firebase. Verifique o console.");
+        }
 
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -428,12 +67,49 @@
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
             const errorDiv = document.getElementById('auth-error');
+            const btn = document.querySelector('#auth-form button');
 
+            // Feedback visual
+            btn.textContent = "Processando...";
+            btn.disabled = true;
+            errorDiv.textContent = "";
+
+            console.log("Tentando autenticar:", email);
+
+            // MECANISMO DE SEGURANÇA: Timeout de 10 segundos
+            const timeoutId = setTimeout(() => {
+                console.error("Timeout de conexão (10s).");
+                alert("O login está demorando muito. \n\nPossíveis causas:\n1. Você está abrindo o arquivo direto (clique duplo) em vez de usar o link do GitHub.\n2. Seu adblocker está bloqueando o Firebase.\n3. O provedor 'Email/Senha' está desativado no console do Firebase.");
+                
+                // Reseta botão
+                btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
+                btn.disabled = false;
+            }, 10000);
+
+            let authPromise;
             if (authMode === 'register') {
-                auth.createUserWithEmailAndPassword(email, pass).then(() => {}).catch(err => errorDiv.textContent = err.message);
+                authPromise = auth.createUserWithEmailAndPassword(email, pass);
             } else {
-                auth.signInWithEmailAndPassword(email, pass).then(() => {}).catch(err => errorDiv.textContent = err.message);
+                authPromise = auth.signInWithEmailAndPassword(email, pass);
             }
+
+            authPromise
+                .then(() => {
+                    console.log("Sucesso na autenticação.");
+                    clearTimeout(timeoutId); // Cancela o timeout
+                    // O listener onAuthStateChanged cuidará do resto
+                })
+                .catch(err => {
+                    console.error("Erro na autenticação:", err);
+                    clearTimeout(timeoutId); // Cancela o timeout
+                    
+                    const msg = err.message || "Erro desconhecido.";
+                    errorDiv.textContent = msg;
+                    alert("Erro: " + msg); 
+                    
+                    btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
+                    btn.disabled = false;
+                });
         }
 
         function logout() {
@@ -441,9 +117,13 @@
         }
 
         auth.onAuthStateChanged(user => {
+            console.log("Auth state changed:", user ? user.email : "Deslogado");
             if (user) {
                 state.user = user;
                 document.getElementById('display-email').textContent = user.email;
+                // Reseta botão caso tenha voltado pra tela de login (erro no checkUserGroup)
+                const btn = document.querySelector('#auth-form button');
+                if(btn) { btn.textContent = "Acessar"; btn.disabled = false; }
                 checkUserGroup(user.uid);
             } else {
                 state.user = null;
@@ -458,20 +138,24 @@
 
         // --- GRUPO LÓGICA ---
         async function checkUserGroup(uid) {
+            console.log("Verificando grupo para UID:", uid);
             document.getElementById('loading-overlay').classList.remove('hidden');
             try {
                 const userDoc = await db.collection('users').doc(uid).get();
                 if (userDoc.exists && userDoc.data().groupId) {
                     state.currentGroupId = userDoc.data().groupId;
+                    console.log("Grupo encontrado:", state.currentGroupId);
                     loadApp();
                 } else {
+                    console.log("Usuário sem grupo. Mostrando tela de grupo.");
                     document.getElementById('auth-overlay').classList.remove('open');
                     document.getElementById('group-overlay').classList.add('open');
                     document.getElementById('loading-overlay').classList.add('hidden');
                 }
             } catch (e) {
-                console.error(e);
-                showToast('Erro ao verificar grupo', 'error');
+                console.error("Erro crítico em checkUserGroup:", e);
+                alert("Erro ao carregar dados do usuário: " + e.message);
+                document.getElementById('loading-overlay').classList.add('hidden'); // Libera a tela
             }
         }
 
@@ -487,7 +171,10 @@
                 showToast(`Grupo "${name}" criado!`, 'success');
                 document.getElementById('group-overlay').classList.remove('open');
                 loadApp();
-            } catch (e) { showToast('Erro ao criar grupo', 'error'); }
+            } catch (e) { 
+                console.error(e);
+                alert("Erro ao criar grupo: " + e.message);
+            }
         }
 
         async function joinGroup() {
@@ -505,23 +192,23 @@
                 } else {
                     alert("Código de grupo inválido.");
                 }
-            } catch (e) { showToast('Erro ao entrar', 'error'); }
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao entrar no grupo: " + e.message);
+            }
         }
 
-        // --- FUNÇÃO NOVA: SAIR DO GRUPO ---
+        // --- FUNÇÃO: SAIR DO GRUPO ---
         async function leaveGroup() {
-            if (!confirm("Tem certeza que deseja sair deste grupo? Você precisará de um código para entrar novamente.")) return;
+            if (!confirm("Tem certeza que deseja sair deste grupo?")) return;
 
             try {
-                // Remove o campo groupId do documento do usuário
                 await db.collection('users').doc(state.user.uid).update({
                     groupId: firebase.firestore.FieldValue.delete()
                 });
 
-                // Limpa estado local
                 state.currentGroupId = null;
 
-                // Atualiza UI: Mostra overlay de grupo, esconde app
                 document.getElementById('app-sidebar').classList.add('hidden');
                 document.getElementById('app-main').classList.add('hidden');
                 document.getElementById('group-overlay').classList.add('open');
@@ -529,7 +216,7 @@
                 showToast('Você saiu do grupo.', 'info');
             } catch (e) {
                 console.error(e);
-                showToast('Erro ao sair do grupo', 'error');
+                alert("Erro ao sair: " + e.message);
             }
         }
 
@@ -543,7 +230,7 @@
                     document.getElementById('display-group-name').textContent = doc.data().name;
                     document.getElementById('display-group-id').textContent = `ID: ${state.currentGroupId}`;
                 }
-            });
+            }).catch(e => console.error(e));
 
             loadGroupData();
         }
@@ -551,26 +238,32 @@
         function loadGroupData() {
             if(!state.currentGroupId) return;
 
+            // Listener de Transactions
             db.collection('groups').doc(state.currentGroupId).collection('transactions')
                 .orderBy('date', 'desc').onSnapshot(snapshot => {
                 state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
+            }, err => {
+                console.error("Erro ouvindo transações:", err);
+                alert("Erro de permissão ao ler transações. Verifique as regras do Firestore.");
             });
 
+            // Listener de Cards
             db.collection('groups').doc(state.currentGroupId).collection('cards')
                 .onSnapshot(snapshot => {
                 state.cards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
-            });
+            }, err => console.error(err));
 
+            // Listener de Logs
             db.collection('groups').doc(state.currentGroupId).collection('logs')
                 .orderBy('timestamp', 'desc').limit(50).onSnapshot(snapshot => {
                 state.logs = snapshot.docs.map(doc => doc.data());
                 renderLogs();
-            });
+            }, err => console.error(err));
         }
 
-        // --- CRUD COM SUBCOLEÇÕES ---
+        // --- CRUD ---
         async function saveTransactionToFirebase(tData, id = null) {
             const col = db.collection('groups').doc(state.currentGroupId).collection('transactions');
             try {
@@ -583,7 +276,7 @@
                     addLog('add', `Adicionou: ${tData.desc}`);
                     showToast('Salvo!', 'success');
                 }
-            } catch (e) { showToast('Erro ao salvar', 'error'); }
+            } catch (e) { showToast('Erro ao salvar: ' + e.message, 'error'); }
         }
 
         async function deleteTransactionFromFirebase(id) {
@@ -607,7 +300,7 @@
                     addLog('add', `Criou cartão: ${cData.name}`);
                     showToast('Criado!', 'success');
                 }
-            } catch (e) { showToast('Erro ao salvar', 'error'); }
+            } catch (e) { showToast('Erro ao salvar cartão', 'error'); }
         }
 
         async function deleteCardFromFirebase(id) {
@@ -634,7 +327,7 @@
              });
         }
 
-        // --- UI & CHARTS ---
+        // --- UI ---
         function updateUI() {
             renderSummary();
             renderTransactionsList();
@@ -913,5 +606,3 @@
 
         initTheme();
     </script>
-</body>
-</html>
