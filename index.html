@@ -13,7 +13,7 @@
 
     <style>
         :root {
-            --bg-body: #f4f6f8; --bg-card: #ffffff; --text-primary: #2d3748; --text-secondary: #718096; --primary: #5a67d8; --primary-hover: #4c51bf; --success: #48bb78; --danger: #title = '#f56565'; --warning: '#ed8936'; --info: '#4299e1'; --border = '#e2e8f0'; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --radius: 12px; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --bg-body: #f4f6f8; --bg-card: #ffffff; --text-primary: #2d3748; --text-secondary: #718096; --primary: #5a67d8; --primary-hover: #4c51bf; --success: #48bb78; --danger: #f56565; --warning: #ed8936; --info: #4299e1; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --radius: 12px; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         [data-theme="dark"] {
@@ -69,7 +69,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal { background: var(--bg-card); width: 100%; max-width: 500px; border-radius: var(--radius); padding: 2rem; transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto;}
-        .modal-overlay.open .modal { transform: 0.3s transform: translateY(0); }
+        .modal-overlay.open .modal { transform: translateY(0); }
         .form-group { margin-bottom: 1rem; text-align: left; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
         .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; background: var(--bg-body); color: var(--text-primary); }
@@ -195,9 +195,13 @@
             <ul class="nav-links">
                 <li class="nav-item active" onclick="showSection('dashboard', this)"><span>📊</span> Dashboard</li>
                 <li class="nav-item" onclick="showSection('transactions', this)"><span>💸</span> Transações</li>
-                <li class="nav-item" onclick="showSection('cards', this)"><span>💳</span> <input type="file" id="import-json" style="font-size: 0.75rem; padding: 5px; font-family: monospace; width: 100%;">
-                <label for="import-json" style="cursor: pointer;">💾 Backup/Restaurar</label>
-            </li>
+                <li class="nav-item" onclick="showSection('cards', this)"><span>💳</span> Cartões</li>
+                <!-- Separado Backup para não quebrar o layout -->
+                <li class="nav-item" onclick="document.getElementById('import-json').click()">
+                    <span>💾</span> Backup/Restaurar
+                </li>
+                <input type="file" id="import-json" style="display: none;" onchange="importData(this)">
+                
                 <li class="nav-item" onclick="showSection('logs', this)"><span>📜</span> Logs</li>
             </ul>
         </div>
@@ -272,11 +276,11 @@
                         <div class="radio-option" onclick="selectType('expense', this)" id="opt-expense">Saída</div>
                     </div>
                 </div>
-                <div class="form-group"><label>Descrição</label><input type="text" id="t-desc" class="demorv>...</div>
-                <div class="form-group"><label>Valor</label><input type="number" class="demorv">...</div>
+                <div class="form-group"><label>Descrição</label><input type="text" id="t-desc" class="form-control" required></div>
+                <div class="form-group"><label>Valor</label><input type="number" step="0.01" id="t-amount" class="form-control" required></div>
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select class="demorv">
+                    <select id="t-category" class="form-control">
                         <option value="Moradia">🏠 Moradia</option>
                         <option value="Alimentação">🍔 Alimentação</option>
                         <option value="Transporte">🚗 Transporte</option>
@@ -286,10 +290,10 @@
                         <option value="Outros">📦 Outros</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Data</label><input type="date" class="demorv"></div>
+                <div class="form-group"><label>Data</label><input type="date" id="t-date" class="form-control" required></div>
                 <div class="form-group" id="card-select-group">
                     <label>Pagar com Cartão?</label>
-                    <select class="demorv"><option value="">Dinheiro / Débito</option></select>
+                    <select id="t-card" class="form-control"><option value="">Dinheiro / Débito</option></select>
                 </div>
                 <div style="text-align: right; margin-top: 1.5rem;">
                     <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
@@ -307,11 +311,11 @@
             </div>
             <form id="card-form">
                 <input type="hidden" id="c-id">
-                <div class="form-group"><label>Nome</label><input type="text" class="demorv"></div>
-                <div class="form-group"><label>Limite</label><input type="number" class="demorv"></div>
+                <div class="form-group"><label>Nome</label><input type="text" id="c-name" class="form-control" required></div>
+                <div class="form-group"><label>Limite</label><input type="number" id="c-limit" class="form-control" required></div>
                 <div class="form-group">
                     <label>Cor</label>
-                    <select class="demorv">
+                    <select id="c-color" class="form-control">
                         <option value="#667eea">Roxo</option><option value="#48bb78">Verde</option><option value="#ed8936">Laranja</option><option value="#f56565">Vermelho</option><option value="#4299e1">Azul</option><option value="#2d3748">Preto</option>
                     </select>
                 </div>
@@ -337,8 +341,8 @@
             authDomain: "financas2-c616f.firebaseapp.com",
             projectId: "financas2-c616f",
             storageBucket: "financas2-c616f.firebasestorage.app",
-            messagingSenderId: "Parar-button">Parar-button">
-            appId: "1:1029379063635: web:b8ec7c6877e9b512686ba6"
+            messagingSenderId: "1029379063635",
+            appId: "1:1029379063635:web:b8ec7c6877e9b512686ba6"
         };
 
         let auth, db;
@@ -346,16 +350,17 @@
 
         // --- LÓGICA DE TIMEOUT VISUAL ---
         let loginTimerInterval;
-        let loginTimeoutLimit = 10; // Segundos
+        let loginTimeoutLimit = 15; // Aumentado para 15 segundos
         let loginTimerCurrent = 0;
 
         function startLoginTimer() {
             loginTimerCurrent = loginTimeoutLimit;
-            document.getElementById('loading-timer').textContent = ` (${loginTimerCurrent}s...)`;
+            const timerEl = document.getElementById('loading-timer');
+            if(timerEl) timerEl.textContent = ` (${loginTimerCurrent}s...)`;
             clearInterval(loginTimerInterval);
             loginTimerInterval = setInterval(() => {
                 loginTimerCurrent--;
-                document.getElementById('loading-timer').textContent = `(${loginTimerCurrent}s...)`;
+                if(timerEl) timerEl.textContent = `(${loginTimerCurrent}s...)`;
                 if (loginTimerCurrent <= 0) {
                     clearInterval(loginTimerInterval);
                     forceStopLogin();
@@ -365,20 +370,20 @@
 
         function stopLoginTimer() {
             clearInterval(loginTimerInterval);
-            document.getElementById('loading-timer').textContent = "Tempo esgotado";
+            const timerEl = document.getElementById('loading-timer');
+            if(timerEl) timerEl.textContent = "";
         }
 
         function forceStopLogin() {
             stopLoginTimer();
-            alert("O Login travou! ⏱📊\n\nO que isso significa:\n\nO app enviou o pedido, mas o servidor não respondeu.\n\nCAUSA MAIS COMUM: Você está abrindo o arquivo direto (clique duplo no arquivo) em vez do link do GitHub (https://seu-usuario.github.io/nome-do-app).
-\nSolução:\n1. Use o link do GitHub.\n2. Desative o AdBlocker / Antivírus.\n3. Não funciona em arquivos locais (file://).");
+            alert("O Login demorou muito! ⏱\n\nPossíveis causas:\n1. Conexão internet instável.\n2. Você está abrindo o arquivo direto (file://) em vez de um link (http/https).\n3. Bloqueador de anúncios forte.\n\nDica: Tente atualizar a página.");
             
-            // Resetar botão de login
             const btn = document.querySelector('#auth-form button');
             if(btn) {
                 btn.textContent = "Acessar";
                 btn.disabled = false;
             }
+            document.getElementById('loading-overlay').classList.add('hidden');
         }
 
         try {
@@ -389,7 +394,11 @@
             console.log("Firebase OK.");
         } catch (e) { 
             console.error("Erro Firebase:", e);
-            document.getElementById('firebase-status').textContent = "X Erro no Firebase";
+            const statusEl = document.getElementById('firebase-status');
+            if(statusEl) {
+                statusEl.textContent = "X Erro no Firebase";
+                statusEl.style.color = "var(--danger)";
+            }
             alert("Erro crítico no Firebase: " + e.message);
         }
 
@@ -400,12 +409,12 @@
             if(email) {
                 auth.sendPasswordResetEmail(email)
                     .then(() => {
-                        alert("📧 Email de redefinição enviado!\n\nVerifique sua caixa de entrada (e spam) e siga as instruções para criar uma nova senha.");
+                        alert("📧 Email de redefinição enviado!\n\nVerifique sua caixa de entrada (e spam).");
                         switchAuthTab('login');
                         document.getElementById('auth-email').value = email;
                         document.getElementById('auth-pass').focus();
                     })
-                    .catch((error) => { alert("Erro ao enviar email: " + error.message)); }
+                    .catch((error) => { alert("Erro ao enviar email: " + error.message); });
             }
         };
 
@@ -424,14 +433,16 @@
         }
 
         function updateThemeBtn(theme) {
-            document.getElementById('theme-btn').textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+            const btn = document.getElementById('theme-btn');
+            if(btn) btn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
         }
 
         function switchAuthTab(mode) {
             authMode = mode;
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${mode}`).classList.add('active');
-            document.querySelector('#auth-form button').textContent = mode === 'login' ? 'Acessar' : 'Criar Conta';
+            const btn = document.querySelector('#auth-form button');
+            if(btn) btn.textContent = mode === 'login' ? 'Acessar' : 'Criar Conta';
             document.getElementById('auth-error').textContent = '';
         }
 
@@ -447,8 +458,8 @@
             btn.textContent = "Processando...";
             btn.disabled = true;
             errorDiv.textContent = "";
-            debugLog(`Iniciando Login para: ${email}`);
-            startLoginTimer(); // Inicia o contador regressivo
+            console.log(`Iniciando Login para: ${email}`);
+            startLoginTimer();
 
             let authPromise = authMode === 'register' 
                 ? auth.createUserWithEmailAndPassword(email, pass) 
@@ -457,10 +468,10 @@
             authPromise
                 .then(() => {
                     stopLoginTimer();
-                    debugLog("Login bem sucedido!");
+                    console.log("Login bem sucedido!");
                 })
                 .catch(err => {
-                    stopLoginTimer(); // Para o timer visual
+                    stopLoginTimer(); 
                     errorDiv.textContent = err.message;
                     btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
                     btn.disabled = false;
@@ -482,23 +493,23 @@
                     document.getElementById('app-sidebar').classList.add('hidden');
                     document.getElementById('app-main').classList.add('hidden');
                     document.getElementById('loading-overlay').classList.add('hidden');
-                    stopLoginTimer(); // Segurança: para garantir que não travar no "Carregando..." eterno.
+                    stopLoginTimer();
                 }
             });
         }
 
         async function checkUserGroup(uid) {
             document.getElementById('loading-overlay').classList.remove('hidden');
-            startLoginTimer(); // Inicia o contador
+            startLoginTimer();
             try {
-                debugLog("Verificando grupo para UID: " + uid);
+                console.log("Verificando grupo para UID: " + uid);
                 const userDoc = await db.collection('users').doc(uid).get();
                 if (userDoc.exists && userDoc.data().groupId) {
                     state.currentGroupId = userDoc.data().groupId;
                     loadApp();
                 } else {
                     document.getElementById('auth-overlay').classList.remove('open');
-                    stopLoginTimer(); // Para destravar o timer se o usuário não tiver grupo
+                    stopLoginTimer();
                     document.getElementById('group-overlay').classList.add('open');
                     document.getElementById('loading-overlay').classList.add('hidden');
                 }
@@ -576,9 +587,51 @@
             }, err => console.error(err));
         }
 
+        // --- BACKUP/RESTAURAR ---
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.transactions && Array.isArray(data.transactions)) {
+                        // Confirmar importação
+                        if(confirm(`Encontrado ${data.transactions.length} transações no backup. Deseja substituir tudo no grupo atual? (CUIDADO: Isso apaga os dados atuais)`)) {
+                            // Deletar coleção atual (simplificado - em prod use batch)
+                            const batch = db.batch();
+                            const colRef = db.collection('groups').doc(state.currentGroupId).collection('transactions');
+                            colRef.get().then(snapshot => {
+                                snapshot.docs.forEach(doc => {
+                                    batch.delete(doc.ref);
+                                });
+                                // Adicionar novas
+                                data.transactions.forEach(t => {
+                                    const newRef = colRef.doc();
+                                    batch.set(newRef, t);
+                                });
+                                return batch.commit();
+                            }).then(() => {
+                                showToast('Backup restaurado com sucesso!', 'success');
+                            }).catch(err => {
+                                console.error(err);
+                                showToast('Erro ao restaurar: ' + err.message, 'error');
+                            });
+                        }
+                    } else {
+                        alert("Arquivo inválido.");
+                    }
+                } catch(err) {
+                    alert("Erro ao ler arquivo: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset
+        }
+
         // --- CRUD ---
         async function saveTransactionToFirebase(tData, id = null) {
-            const col = db.collection('groups'). doc(state.currentGroupId).collection('transactions');
+            const col = db.collection('groups').doc(state.currentGroupId).collection('transactions');
             try {
                 if (id) { await col.doc(id).update(tData); addLog('edit', `Editou: ${tData.desc}`); showToast('Atualizado!', 'success'); } 
                 else { await col.add({ ...tData, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); addLog('add', `Adicionou: ${tData.desc}`); showToast('Salvo!', 'success'); }
@@ -633,7 +686,7 @@
                 const isExpense = t.type === 'expense'; const colorClass = isExpense ? 'text-danger' : 'text-success'; const sign = isExpense ? '-' : '+';
                 let cardTag = '';
                 if (t.cardId) { const card = state.cards.find(c => c.id == t.cardId); if (card) cardTag = `<span class="tag" style="border:1px solid ${card.color}; color:${card.color}">${card.name}</span>`; }
-                const actionBtns = showActions ? `<div class="action-buttons"><button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteTransactionFromFirebase('${t.id}')">🗑</button></div>` : '';
+                const actionBtns = showActions ? `<div class="action-buttons"><button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button><button class="btn btn-sm btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteTransactionFromFirebase('${t.id}')">🗑</button></div>` : '';
                 return `<div class="list-item"><div class="item-info"><h4>${t.desc} ${cardTag}</h4><p>${formatDate(t.date)} • ${t.category}</p></div><div style="display:flex; align-items:center;"><div class="item-amount ${colorClass}" style="margin-right: 15px;">${sign} ${formatCurrency(t.amount, false)}</div>${actionBtns}</div></div>`;
             };
             list.innerHTML = filtered.length ? filtered.map(t => generateHTML(t, true)).join('') : '<div class="empty-state">Nada encontrado.</div>';
@@ -645,7 +698,7 @@
             container.innerHTML = state.cards.map(card => {
                 const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((acc, t) => acc + parseFloat(t.amount), 0);
                 const percent = Math.min((spent / card.limit) * 100, 100);
-                return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: var(--shadow); }>
+                return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: var(--shadow);">
                     <div class="flex-between" style="margin:0; color:white;">
                         <div class="card-name">${card.name}</div>
                         <div>
@@ -653,7 +706,7 @@
                             <button onclick="deleteCardFromFirebase('${card.id}')" style="background:none; border:none; color:white; cursor:pointer;">🗑</button>
                         </div>
                     </div>
-                    <div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">•••••• •••• ••• •• ••• ••••</div>
+                    <div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">•••• •••• •••• ••••</div>
                     <div class="card-limit-info">
                         <div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);">
                             <span>Gasto: ${formatCurrency(spent, false)}</span>
@@ -668,6 +721,7 @@
         }
         function updateCardSelect() {
             const select = document.getElementById('t-card');
+            if(!select) return;
             select.innerHTML = '<option value="">Dinheiro / Débito</option>';
             state.cards.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
         }
@@ -685,12 +739,14 @@
             }).join('');
         }
         function renderMonthlyChart() {
-            const container = document.getElementById('monthly-chart-container'); container.innerHTML = '';
+            const container = document.getElementById('monthly-chart-container'); 
+            if(!container) return;
+            container.innerHTML = '';
             const months = [];
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(); d.setMonth(d.getMonth() - i);
                 const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}`;
-                const label = d.toLocaleString('pt-BR', { month: short' });
+                const label = d.toLocaleString('pt-BR', { month: 'short' });
                 months.push({ key: k, label });
             }
             const data = months.map(m => {
@@ -708,7 +764,7 @@
                 const hInc = (d.inc / maxVal) * chartH, hExp = (d.exp / maxVal) * chartH;
                 const yInc = h - 20 - hInc, yExp = h - 20 - hExp;
                 svg += `<rect x="${x}" y="${yInc}" width="${barW}" height="${hInc}" fill="#48bb78" rx="2"><title>Entradas: ${formatCurrency(d.inc)}</title></rect>`;
-                svg += `<rect x="${x + barW}" y="${yExp}" width="${barW}" height="${hExp}" fill="#f56565" rx="2"><title>Saídas: ${formatCurrency(d.exp)}</rect>`;
+                svg += `<rect x="${x + barW}" y="${yExp}" width="${barW}" height="${hExp}" fill="#f56565" rx="2"><title>Saídas: ${formatCurrency(d.exp)}</title></rect>`;
                 svg += `<text x="${x + barW}" y="${h - 5}" font-size="10" text-anchor="middle" fill="var(--text-secondary)">${d.label}</text>`;
             });
             svg += `</svg>`;
@@ -727,20 +783,26 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            navEl.classList.add('active');
-            if(window.innerWidth <= 768px) document.getElementById('app-sidebar').classList.remove('open');
+            if(navEl) navEl.classList.add('active');
+            if(window.innerWidth <= 768) document.getElementById('app-sidebar').classList.remove('open');
         }
         function toggleSidebar() { document.getElementById('app-sidebar').classList.toggle('open'); }
         function selectType(type, el) {
             document.querySelectorAll('.radio-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
-            document.getElementById('card-select-group').style.display = type === 'expense' ? 'block' : 'none';
-            if(type === 'income') document.getElementById('t-card').value = "";
+            const cardGroup = document.getElementById('card-select-group');
+            if(cardGroup) cardGroup.style.display = type === 'expense' ? 'block' : 'none';
+            if(type === 'income') {
+                const cardSel = document.getElementById('t-card');
+                if(cardSel) cardSel.value = "";
+            }
         }
         function closeModals() {
             document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('open'));
-            document.getElementById('transaction-form').reset();
-            document.getElementById('card-form').reset();
+            const tForm = document.getElementById('transaction-form');
+            const cForm = document.getElementById('card-form');
+            if(tForm) tForm.reset();
+            if(cForm) cForm.reset();
             document.getElementById('t-id').value = "";
             document.getElementById('c-id').value = "";
             document.getElementById('t-date').valueAsDate = new Date();
@@ -797,7 +859,10 @@
             saveCardToFirebase(cData, id || null);
             closeModals();
         });
-        function formatCurrency(val, withSymbol = true) { const formatted = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return withSymbol ? `R$ ${formatted}` : formatted; }
+        function formatCurrency(val, withSymbol = true) { 
+            const formatted = parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+            return withSymbol ? `R$ ${formatted}` : formatted; 
+        }
         function formatDate(isoDate) {
             if(!isoDate) return '';
             const [y, m, d] = isoDate.split('-');
