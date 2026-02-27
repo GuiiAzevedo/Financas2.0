@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#5a67d8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Finanças Família (Firebase + Google)</title>
+    <title>Finanças Família</title>
+    
+    <!-- --- PWA CONFIG --- -->
+    <!-- 1. Link para o Manifesto (Essencial para instalar no Android/iOS) -->
+    <link rel="manifest" href="manifest.json">
+    <!-- 2. Ícones (O arquivo icon.png deve estar na mesma pasta) -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
+    <!-- ------------------- -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -369,7 +376,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Adicionei limit, getDocs e writeBatch pois estavam faltando
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, addDoc, serverTimestamp, limit, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
@@ -479,12 +487,11 @@
                 await updateDoc(doc(db, 'users', state.user.uid), {
                     groupId: '' // Remove grupo
                 });
-                // O onAuthStateChanged vai detectar a mudança (ou vamos forçar reload da UI)
                 state.currentGroupId = null;
                 stopListeners();
                 document.getElementById('app-sidebar').classList.add('hidden');
                 document.getElementById('app-main').classList.add('hidden');
-                document.getElementById('group-overlay').classList.add('open');
+                document.getElementById('group-overlay').classList.remove('hidden'); // Mostra tela de grupo de novo
                 showToast('Você saiu da família.', 'info');
             } catch (e) { 
                 console.error(e);
@@ -592,10 +599,17 @@
         window.deleteTransaction = async function(id) {
             const t = state.transactions.find(x => x.id === id);
             if(t && t.installmentGroup) {
-                 // Lógica de parcelas (simplificada para DB: apaga todas do grupo se quiser, ou só uma)
+                 // Lógica de parcelas
                  if(confirm("Apagar apenas esta parcela ou todas (grupo)?\nOK = Todas | Cancelar = Apenas esta")) {
-                     // Apagar grupo complexo requer query. Por simplicidade, apaga só a selecionada aqui ou implementar batch.
-                     // Vamos apagar só a selecionada por enquanto para manter o código limpo.
+                     // Para apagar todas, precisamos buscar pelo campo installmentGroup
+                     const q = query(collection(db, 'groups', state.currentGroupId, 'transactions'), where("installmentGroup", "==", t.installmentGroup));
+                     const snap = await getDocs(q);
+                     const batch = writeBatch(db);
+                     snap.forEach(d => batch.delete(d.ref));
+                     await batch.commit();
+                     addLog('delete', `Excluiu grupo de parcelas: ${t.desc}`);
+                     showToast('Grupo removido.', 'info');
+                     return;
                  }
             }
             await deleteDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id));
@@ -630,7 +644,7 @@
             const q = query(collection(db, 'groups', state.currentGroupId, 'logs'));
             const snap = await getDocs(q);
             const batch = writeBatch(db);
-            snap.forEach(doc => batch.delete(doc.ref));
+            snap.forEach(d => batch.delete(d.ref));
             await batch.commit();
         };
 
