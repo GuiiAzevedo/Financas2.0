@@ -1,10 +1,11 @@
 {
   "name": "Finanças Família",
   "short_name": "Finanças",
-  "start_url": ".",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f4f6f8",
   "theme_color": "#5a67d8",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon.png",
