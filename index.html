@@ -7,92 +7,48 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Finanças Família Pro</title>
 
-    <!-- Ícone e Manifesto -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
-
-    <!-- Biblioteca para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* --- VARIÁVEIS DE TEMA (CLARO) --- */
         :root {
-            --bg-body: #f4f6f8;
-            --bg-card: #ffffff;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --primary: #5a67d8;
-            --primary-hover: #4c51bf;
-            --success: #48bb78;
-            --danger: #f56565;
-            --warning: #ed8936;
-            --info: #4299e1;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --bg-body: #f4f6f8; --bg-card: #ffffff; --text-primary: #2d3748; --text-secondary: #718096; --primary: #5a67d8; --primary-hover: #4c51bf; --success: #48bb78; --danger: #f56565; --warning: #ed8936; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --radius: 12px; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-
-        /* --- VARIÁVEIS DE TEMA (ESCURO) --- */
-        [data-theme="dark"] {
-            --bg-body: #1a202c;
-            --bg-card: #2d3748;
-            --text-primary: #f7fafc;
-            --text-secondary: #a0aec0;
-            --border: #4a5568;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-        }
-
+        [data-theme="dark"] { --bg-body: #1a202c; --bg-card: #2d3748; --text-primary: #f7fafc; --text-secondary: #a0aec0; --border: #4a5568; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4); }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.5; height: 100vh; display: flex; overflow: hidden; transition: background 0.3s, color 0.3s; }
-
-        /* Layout */
         .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; }
         .main-content { flex: 1; overflow-y: auto; padding: 2rem; position: relative; scroll-behavior: smooth; }
-
-        /* Nav */
         .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
         .nav-item { padding: 0.75rem 1rem; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover { background-color: var(--bg-body); color: var(--primary); }
         .nav-item.active { background-color: var(--primary); color: white; }
-
-        /* Components */
         .btn { padding: 0.75rem 1.5rem; border-radius: var(--radius); border: none; cursor: pointer; font-weight: 600; transition: transform 0.1s, opacity 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
         .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
         .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
-
-        /* Dashboard */
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card h3 { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem; }
         .stat-card .value { font-size: 1.75rem; font-weight: 700; }
         .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); }
-
-        /* Lists */
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
         .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; }
         .item-info p { font-size: 0.85rem; color: var(--text-secondary); }
         .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-body); color: var(--text-secondary); margin-left: 8px; }
         .action-buttons { display: flex; gap: 5px; }
-
-        /* Cards UI */
         .credit-card-ui { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: var(--shadow); }
         .progress-bar-bg { background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
         .progress-bar-fill { background: white; height: 100%; border-radius: 4px; width: 0%; transition: width 0.5s ease; }
-
-        /* Login & Group */
         #auth-overlay, #group-overlay { background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; position: fixed; top:0; left:0; width:100%; height:100%; }
         .auth-box, .group-box { background: var(--bg-card); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; }
         .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
         .auth-tab { flex: 1; padding: 0.5rem; cursor: pointer; color: var(--text-secondary); }
         .auth-tab.active { border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: bold; }
-
-        /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal { background: var(--bg-card); width: 100%; max-width: 500px; border-radius: var(--radius); padding: 2rem; transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto;}
@@ -103,24 +59,16 @@
         .radio-group { display: flex; gap: 1rem; }
         .radio-option { flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; }
         .radio-option.selected { border-color: var(--primary); background: var(--primary); color: white; }
-
-        /* Toast */
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: var(--bg-card); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 4px; box-shadow: var(--shadow); min-width: 250px; animation: slideIn 0.3s ease; color: var(--text-primary); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
         .hidden { display: none !important; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
-        
-        /* Loading */
         #loading-overlay { position: fixed; inset: 0; background: var(--bg-body); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--bg-card); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Mobile */
         .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
-
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; min-height: 100vh; }
             .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
@@ -149,7 +97,6 @@
             <img src="icon.png" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 1rem; box-shadow: var(--shadow);" alt="Logo">
             <h1 style="color: var(--primary); margin-bottom: 0.5rem;">Finanças Pro</h1>
             
-            <!-- STATUS FIREBASE -->
             <div id="firebase-status" style="font-size: 0.8rem; color: var(--success); margin-bottom: 0.5rem;">✓ Firebase Conectado</div>
             
             <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Gerenciamento familiar</p>
@@ -168,11 +115,15 @@
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Acessar</button>
             </form>
-            
-            <!-- Botão Esqueci Senha -->
+
+            <!-- DEBUG LOG (VISUAL) -->
+            <div id="debug-log" style="background: #2d3748; color: #fff; font-family: monospace; padding: 10px; font-size: 0.75rem; text-align: left; border-radius: 4px; min-height: 60px; max-height: 100px; overflow-y: auto; white-space: pre-wrap;">
+> Pronto...
+            </div>
+
             <button type="button" onclick="handleResetPassword()" style="margin-top: 15px; background:none; border:none; color: var(--text-secondary); font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Esqueci minha senha</button>
 
-            <div id="auth-error" style="color: var(--danger); margin-top: 10px; font-size: 0.9rem; min-height: 1.2em;"></div>
+            <div id="auth-error" style="color: var(--danger); margin-top: 10px; font-size: 0.9rem;"></div>
         </div>
     </div>
 
@@ -181,15 +132,12 @@
         <div class="group-box">
             <h2 style="color: var(--primary); margin-bottom: 1rem;">Configurar Família</h2>
             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">Crie um novo grupo familiar ou entre em um existente para começar.</p>
-            
             <div class="form-group" style="text-align: left;">
                 <label>Nome do Grupo (Ex: Família Azevedo)</label>
                 <input type="text" id="group-name-input" class="form-control" placeholder="Nome">
             </div>
             <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="createGroup()">Criar Novo Grupo</button>
-            
             <div style="border-top: 1px solid var(--border); margin: 1rem 0;"></div>
-            
             <div class="form-group" style="text-align: left;">
                 <label>Ou entre com o Código do Grupo</label>
                 <input type="text" id="group-code-input" class="form-control" placeholder="Código do Grupo (ID)">
@@ -202,7 +150,6 @@
     <nav class="sidebar hidden" id="app-sidebar">
         <div>
             <div class="brand">Finanças</div>
-            
             <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border);">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div>
@@ -216,12 +163,10 @@
                     <button onclick="leaveGroup()" style="background:none; border:none; color: var(--danger); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Sair do Grupo</button>
                 </div>
             </div>
-
             <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
                 <div style="font-weight:bold; color:var(--text-primary);" id="display-email"></div>
                 <div style="font-size:0.75rem; opacity:0.7;">Logado</div>
             </div>
-
             <ul class="nav-links">
                 <li class="nav-item active" onclick="showSection('dashboard', this)"><span>📊</span> Dashboard</li>
                 <li class="nav-item" onclick="showSection('transactions', this)"><span>💸</span> Transações</li>
@@ -229,7 +174,6 @@
                 <li class="nav-item" onclick="showSection('logs', this)"><span>📜</span> Logs</li>
             </ul>
         </div>
-        
         <div style="display: flex; flex-direction: column; gap: 10px;">
             <button class="btn btn-outline btn-sm" onclick="toggleTheme()" id="theme-btn">🌙 Modo Escuro</button>
             <button class="btn btn-outline btn-sm" onclick="logout()" style="color: var(--danger); border-color: var(--danger);">Sair</button>
@@ -363,7 +307,7 @@
         console.log("Scripts iniciados.");
         const firebaseConfig = {
             apiKey: "AIzaSyBHoW1rE9xVAiqOk1ro1SgiI4Rlq4vUx38",
-            authDomain: "financas2-c616f.firebaseapp.com",
+            authDomain: " "financas2-c616f.firebaseapp.com",
             projectId: "financas2-c616f",
             storageBucket: "financas2-c616f.firebasestorage.app",
             messagingSenderId: "1029379063635",
@@ -371,6 +315,14 @@
         };
 
         let auth, db;
+        let authMode = 'login';
+        let debugLogDiv = document.getElementById('debug-log');
+
+        function addDebugLog(msg) {
+            const time = new Date().toLocaleTimeString();
+            debugLogDiv.innerHTML += `[${time}] ${msg}\n`;
+            debugLogDiv.scrollTop = debugLogDiv.scrollHeight;
+        }
 
         try {
             firebase.initializeApp(firebaseConfig);
@@ -388,17 +340,15 @@
 
         let state = { transactions: [], cards: [], logs: [], user: null, currentGroupId: null };
 
-        // --- FUNÇÃO ESQUECI SENHA ---
         window.handleResetPassword = function() {
             const email = prompt("Digite seu email para receber o link de redefinição:");
             if(email) {
                 auth.sendPasswordResetEmail(email)
                     .then(() => {
-                        alert("📧 Email de redefinição enviado!\n\nVerifique sua caixa de entrada (e spam) e siga as instruções para criar uma nova senha.");
-                    switchAuthTab('login');
-                    document.getElementById('auth-email').value = email; // Preenche o campo
-                    document.getElementById('auth-pass').focus(); // Foca na senha
-                })
+                        alert("📧 Email de redefinição enviado!\n\nVerifique sua caixa de entrada e siga as instruções.");
+                        switchAuthTab('login');
+                        document.getElementById('auth-email').value = email;
+                    })
                     .catch((error) => {
                         alert("Erro ao enviar email: " + error.message);
                     });
@@ -423,13 +373,13 @@
             document.getElementById('theme-btn').textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
         }
 
-        let authMode = 'login';
         function switchAuthTab(mode) {
             authMode = mode;
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${mode}`).classList.add('active');
             document.querySelector('#auth-form button').textContent = mode === 'login' ? 'Entrar' : 'Criar Conta';
             document.getElementById('auth-error').textContent = '';
+            debugLogDiv.innerHTML = ''; // Limpa log ao trocar de aba
         }
 
         function handleAuth(e) {
@@ -444,23 +394,31 @@
             btn.textContent = "Processando...";
             btn.disabled = true;
             errorDiv.textContent = "";
+            debugLog(`1. Iniciando requisição para: ${email}`);
 
-            // TIMEOUT DE 15s
+            // TIMEOUT AGRESSIVO (5s)
             const timeoutId = setTimeout(() => {
-                alert("O login está demorando muito (Timeout).\n\nSe o email estiver correto, pode ser bloqueio de rede (AdBlocker, Proxy).");
+                debugLog(`\nTIMEOUT! A requisição travou.\n\nDIAGNÓSTICO: Se você está vendo essa mensagem e o status do Firebase está verde, seu NAVEGADOR OU FIREWALL está bloqueando a resposta do login (CORS ou Bloqueio de DNS).\n\nSOLUÇÃO:\n1. Use o link do GitHub (HTTPS).\n2. Desative AdBlocker.\n3. Tente na sua internet móvel (não Wi-Fi de escritório).`);
                 btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
                 btn.disabled = false;
-            }, 15000);
+            }, 5000);
+
+            debugLog("2. Chamando método Firebase...");
 
             let authPromise = authMode === 'register' 
                 ? auth.createUserWithEmailAndPassword(email, pass) 
                 : auth.signInWithEmailAndPassword(email, pass);
 
+            debugLog("3. Promise criada. Aguardando callback...");
+
             authPromise
-                .then(() => {
+                .then((user) => {
+                    debugLog(`4. SUCESSO! Login Retornou usuário: ${user.email}`);
                     clearTimeout(timeoutId);
+                    // O listener vai cuidar do resto
                 })
                 .catch(err => {
+                    debugLog(`5. ERRO NO LOGIN: ${err.code} - ${err.message}`);
                     clearTimeout(timeoutId);
                     errorDiv.textContent = err.message;
                     btn.textContent = authMode === 'login' ? 'Acessar' : 'Criar Conta';
@@ -639,7 +597,7 @@
             container.innerHTML = state.cards.map(card => {
                 const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((acc, t) => acc + parseFloat(t.amount), 0);
                 const percent = Math.min((spent / card.limit) * 100, 100);
-                return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);"><div class="flex-between" style="margin:0; color:white;"><div class="card-name">${card.name}</div><div><button onclick="openCardModal('${card.id}')" style="background:none; border:none; color:white; cursor:pointer; margin-right:10px;">✏️</button><button onclick="deleteCardFromFirebase('${card.id}')" style="background:none; border:none; color:white; cursor:pointer;">🗑</button></div></div><div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">••••• •••• •••• ••••</div><div class="card-limit-info"><div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);"><span>Gasto: ${formatCurrency(spent, false)}</span><span>Limite: ${formatCurrency(card.limit, false)}</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percent}%"></div></div></div></div>`;
+                return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);"><div class="flex-between" style="margin:0; color:white;"><div class="card-name">${card.name}</div><div><button onclick="openCardModal('${card.id}')" style="background:none; border:none; color:white; cursor:pointer; margin-right:10px;">✏️</button><button onclick="deleteCardFromFirebase('${card.id}')" style="background:none; border:none; color:white; cursor:pointer;">🗑</button></div></div><div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">••••• •••• ••• ••• ••••</div><div class="card-limit-info"><div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);"><span>Gasto: ${formatCurrency(spent, false)}</span><span>Limite: ${formatCurrency(card.limit, false)}</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percent}%"></div></div></div></div>`;
             }).join('');
         }
         function updateCardSelect() {
@@ -769,8 +727,15 @@
             saveCardToFirebase(cData, id || null);
             closeModals();
         });
-        function formatCurrency(val, withSymbol = true) { const formatted = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return withSymbol ? `R$ ${formatted}` : formatted; }
-        function formatDate(isoDate) { if(!isoDate) return ''; const [y, m, d] = isoDate.split('-'); return `${d}/${m}/${y}`; }
+        function formatCurrency(val, withSymbol = true) {
+            const formatted = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return withSymbol ? `R$ ${formatted}` : formatted;
+        }
+        function formatDate(isoDate) {
+            if(!isoDate) return '';
+            const [y, m, d] = isoDate.split('-');
+            return `${d}/${m}/${y}`;
+        }
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toast-area');
             const toast = document.createElement('div');
