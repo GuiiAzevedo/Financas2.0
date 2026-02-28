@@ -7,14 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Finanças Família</title>
     
-    <!-- --- PWA CONFIG --- -->
-    <!-- 1. Link para o Manifesto (Essencial para instalar no Android/iOS) -->
+    <!-- PWA CONFIG -->
     <link rel="manifest" href="manifest.json">
-    <!-- 2. Ícones (O arquivo icon.png deve estar na mesma pasta) -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
-    <!-- ------------------- -->
-
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -69,7 +66,6 @@
         .progress-bar-bg { background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
         .progress-bar-fill { background: white; height: 100%; border-radius: 4px; width: 0%; transition: width 0.5s ease; }
 
-        /* Overlays (Login, Family, Modals) */
         .overlay-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
@@ -77,7 +73,6 @@
         .auth-box, .group-box, .modal { background: var(--bg-card); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; transform: translateY(0); }
         .modal { max-width: 500px; transform: translateY(20px); transition: transform 0.3s; max-height: 90vh; overflow-y: auto;}
         .modal-overlay.open .modal { transform: translateY(0); }
-        
         .hidden { display: none !important; }
 
         .form-group { margin-bottom: 1rem; text-align: left; }
@@ -100,7 +95,6 @@
 
         .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
 
-        /* PDF Styles */
         #pdf-container { position: fixed; left: -9999px; top: 0; width: 800px; background: white; color: #333; padding: 40px; font-family: Helvetica, Arial, sans-serif; }
         .pdf-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #5a67d8; padding-bottom: 10px; }
         .pdf-section { margin-bottom: 30px; }
@@ -125,7 +119,6 @@
 </head>
 <body>
 
-    <!-- LOADING -->
     <div id="loading-overlay">
         <div class="spinner"></div>
         <p style="margin-top: 1rem; color: var(--text-secondary);">Carregando...</p>
@@ -186,7 +179,6 @@
         <div>
             <div class="brand">Finanças <span style="font-size:0.8em; color:var(--text-secondary);">(Pro)</span></div>
             
-            <!-- Info da Família -->
             <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border);">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div>
@@ -201,7 +193,6 @@
                 </div>
             </div>
 
-            <!-- Info do Usuário -->
             <div style="background: var(--bg-body); padding: 10px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
                 <div style="font-weight:bold; color:var(--text-primary);" id="display-email">...</div>
                 <div style="font-size:0.75rem; opacity:0.7;">Logado</div>
@@ -288,7 +279,6 @@
         </section>
     </main>
 
-    <!-- MODAL TRANSAÇÃO -->
     <div class="modal-overlay" id="transaction-modal">
         <div class="modal">
             <div class="flex-between">
@@ -345,7 +335,6 @@
         </div>
     </div>
 
-    <!-- MODAL CARTÃO -->
     <div class="modal-overlay" id="card-modal">
         <div class="modal">
             <div class="flex-between">
@@ -376,10 +365,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // Adicionei limit, getDocs e writeBatch pois estavam faltando
         import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, addDoc, serverTimestamp, limit, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDe1bPgMfXttXp7y46xgDcOwC1hjpqkHuU",
             authDomain: "financas-ac7ee.firebaseapp.com",
@@ -394,11 +381,9 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // --- ESTADO GLOBAL ---
         let state = { transactions: [], cards: [], logs: [], user: null, currentGroupId: null };
         let unsubscribeTransactions, unsubscribeCards, unsubscribeLogs;
 
-        // --- AUTH & USER LOGIC ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 state.user = user;
@@ -434,7 +419,6 @@
             }
         }
 
-        // --- FAMILY LOGIC ---
         window.createFamily = async function() {
             const name = document.getElementById('new-family-name').value;
             if(!name) return showToast("Digite um nome", 'error');
@@ -485,13 +469,13 @@
             if (!confirm("Tem certeza? Você deixará de ver os dados desta família.")) return;
             try {
                 await updateDoc(doc(db, 'users', state.user.uid), {
-                    groupId: '' // Remove grupo
+                    groupId: '' 
                 });
                 state.currentGroupId = null;
                 stopListeners();
                 document.getElementById('app-sidebar').classList.add('hidden');
                 document.getElementById('app-main').classList.add('hidden');
-                document.getElementById('group-overlay').classList.remove('hidden'); // Mostra tela de grupo de novo
+                document.getElementById('group-overlay').classList.remove('hidden');
                 showToast('Você saiu da família.', 'info');
             } catch (e) { 
                 console.error(e);
@@ -504,13 +488,11 @@
             navigator.clipboard.writeText(id).then(() => showToast('ID copiado!', 'success'));
         };
 
-        // --- DATA LOADING (REALTIME) ---
         function loadApp() {
             document.getElementById('app-sidebar').classList.remove('hidden');
             document.getElementById('app-main').classList.remove('hidden');
             document.getElementById('loading-overlay').classList.add('hidden');
 
-            // Load Group Info
             getDoc(doc(db, 'groups', state.currentGroupId)).then(snap => {
                 if(snap.exists()) {
                     document.getElementById('display-group-name').textContent = snap.data().name;
@@ -518,7 +500,6 @@
                 }
             });
 
-            // Listeners
             const tQuery = query(collection(db, 'groups', state.currentGroupId, 'transactions'), orderBy('date', 'desc'));
             unsubscribeTransactions = onSnapshot(tQuery, (snap) => {
                 state.transactions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -543,7 +524,6 @@
             if(unsubscribeLogs) unsubscribeLogs();
         }
 
-        // --- LOGIN HANDLERS ---
         window.handleGoogleLogin = async function() {
             try {
                 await signInWithPopup(auth, provider);
@@ -580,7 +560,6 @@
             signOut(auth);
         };
 
-        // --- DB OPERATIONS (CRUD) ---
         window.saveTransaction = async function(tData, id = null) {
             if (id) {
                 await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), tData);
@@ -599,9 +578,7 @@
         window.deleteTransaction = async function(id) {
             const t = state.transactions.find(x => x.id === id);
             if(t && t.installmentGroup) {
-                 // Lógica de parcelas
                  if(confirm("Apagar apenas esta parcela ou todas (grupo)?\nOK = Todas | Cancelar = Apenas esta")) {
-                     // Para apagar todas, precisamos buscar pelo campo installmentGroup
                      const q = query(collection(db, 'groups', state.currentGroupId, 'transactions'), where("installmentGroup", "==", t.installmentGroup));
                      const snap = await getDocs(q);
                      const batch = writeBatch(db);
@@ -648,7 +625,6 @@
             await batch.commit();
         };
 
-        // --- EXPORT / IMPORT ---
         window.importData = function(input) {
             const file = input.files[0]; if(!file) return;
             const reader = new FileReader();
@@ -671,7 +647,6 @@
             input.value = '';
         };
 
-        // --- UI LOGIC (Mesma da versão local, adaptada para usar window.*) ---
         window.initTheme = function() {
             const saved = localStorage.getItem('theme') || 'light';
             document.body.setAttribute('data-theme', saved);
@@ -821,10 +796,8 @@
             });
             svg += `</svg>`;
             container.innerHTML = svg;
-            return svg; 
         }
 
-        // --- MODAL HANDLERS ---
         window.selectType = function(type, el) {
             document.querySelectorAll('.radio-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
@@ -885,7 +858,6 @@
             }
         };
 
-        // Form Submits
         document.getElementById('transaction-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('t-id').value;
@@ -911,7 +883,6 @@
             closeModals();
         });
 
-        // --- PDF ---
         window.exportPDF = function() {
             const container = document.getElementById('pdf-container');
             const chartSvg = document.getElementById('monthly-chart-container').innerHTML;
@@ -951,7 +922,6 @@
             setTimeout(()=>{ t.style.opacity=0; setTimeout(()=>t.remove(),300); },3000);
         };
 
-        // Init
         initTheme();
     </script>
 </body>
