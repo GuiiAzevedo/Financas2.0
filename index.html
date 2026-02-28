@@ -30,22 +30,20 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* CORREÇÃO SCROLL MOBILE - PASSO 1: Estrutura do Body */
         body { 
             font-family: var(--font-family); 
             background-color: var(--bg-body); 
             color: var(--text-primary); 
             line-height: 1.5; 
-            height: 100dvh; /* Dynamic Viewport Height para PWA */
+            height: 100dvh; 
             display: flex; 
-            overflow: hidden; /* Impede scroll no body, força scroll no main-content */
+            overflow: hidden; 
             flex-direction: column;
             transition: background 0.3s, color 0.3s; 
         }
 
         .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; flex-shrink: 0; }
         
-        /* CORREÇÃO SCROLL MOBILE - PASSO 2: Container Principal */
         .main-content { 
             flex: 1; 
             overflow-y: auto; 
@@ -53,11 +51,9 @@
             position: relative; 
             scroll-behavior: smooth; 
             height: 100%; 
-            
-            /* A MÁGICA ACONTECE AQUI */
-            min-height: 0; /* Obriga o flexbox a respeitar o overflow */
-            touch-action: pan-y; /* Melhora o gesto de scroll no mobile */
-            -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+            min-height: 0; 
+            touch-action: pan-y; 
+            -webkit-overflow-scrolling: touch; 
         }
 
         .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
@@ -74,6 +70,8 @@
         .btn-google:hover { background: #f1f1f1; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
         .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
+        .btn-pay { background-color: var(--warning); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-pay:hover { opacity: 0.9; }
         .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -82,10 +80,13 @@
         .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); }
 
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
-        .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; }
+        /* Estilo para item pendente (opaco) */
+        .list-item.pending { opacity: 0.6; border-left: 4px solid var(--warning); }
+        
+        .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 8px; }
         .item-info p { font-size: 0.85rem; color: var(--text-secondary); }
         .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-body); color: var(--text-secondary); margin-left: 8px; border: 1px solid var(--border); }
-        .action-buttons { display: flex; gap: 5px; }
+        .action-buttons { display: flex; gap: 5px; align-items: center; }
         .future-indicator { font-size: 0.7rem; color: var(--text-secondary); font-style: italic; margin-left: 5px; }
 
         .credit-card-ui { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; position: relative; overflow: hidden; box-shadow: var(--shadow); }
@@ -104,6 +105,12 @@
         .form-group { margin-bottom: 1rem; text-align: left; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
         .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; background: var(--bg-body); color: var(--text-primary); }
+        
+        /* Checkbox Customizado */
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; margin-top: 5px;}
+        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;}
+        .checkbox-wrapper span { font-size: 0.9rem; color: var(--text-secondary); }
+
         .radio-group { display: flex; gap: 1rem; }
         .radio-option { flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; }
         .radio-option.selected { border-color: var(--primary); background: var(--primary); color: white; }
@@ -121,7 +128,19 @@
 
         .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
 
-        #pdf-container { position: fixed; left: -9999px; top: 0; width: 800px; background: white; color: #333; padding: 40px; font-family: Helvetica, Arial, sans-serif; }
+        /* PDF FIX CSS */
+        #pdf-container { 
+            position: absolute; 
+            top: -9999px; 
+            left: -9999px; 
+            width: 800px; 
+            background: white; 
+            color: #333; 
+            padding: 40px; 
+            font-family: Helvetica, Arial, sans-serif;
+            /* Garante que o html2canvas veja o elemento */
+            visibility: hidden; 
+        }
         .pdf-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #5a67d8; padding-bottom: 10px; }
         .pdf-section { margin-bottom: 30px; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
@@ -129,15 +148,11 @@
         .pdf-table th { background-color: #f8f9fa; color: #333; }
 
         @media (max-width: 768px) {
-            body { 
-                /* Flexbox já está configurado no body geral, mantendo consistência */
-            }
+            body { }
             .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
             .sidebar.open { transform: translateX(260px); left: -260px; }
             .mobile-menu-btn { display: flex; }
-            .main-content { 
-                padding: 5rem 1rem 5rem 1rem; /* Padding bottom maior para facilitar o scroll até o fim */
-            }
+            .main-content { padding: 5rem 1rem 5rem 1rem; }
             .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .stat-card:nth-child(1), .stat-card:nth-child(4) { grid-column: span 2; }
         }
@@ -231,6 +246,7 @@
             <ul class="nav-links">
                 <li class="nav-item active" onclick="showSection('dashboard', this)"><span>📊</span> Dashboard</li>
                 <li class="nav-item" onclick="showSection('transactions', this)"><span>💸</span> Transações</li>
+                <li class="nav-item" onclick="showSection('payments', this)"><span>✅</span> Pagamentos</li>
                 <li class="nav-item" onclick="showSection('cards', this)"><span>💳</span> Cartões</li>
                 <li class="nav-item" onclick="document.getElementById('import-json').click()">
                     <span>💾</span> Backup/Restaurar
@@ -293,6 +309,17 @@
             </div>
         </section>
 
+        <!-- NOVA SEÇÃO DE PAGAMENTOS -->
+        <section id="payments" class="view-section hidden">
+            <div class="flex-between">
+                <h2>Histórico de Pagamentos</h2>
+            </div>
+            <div class="card">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Aqui você vê o registro de quando as contas foram quitadas.</p>
+                <div id="payments-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+        </section>
+
         <section id="cards" class="view-section hidden">
             <div class="flex-between">
                 <h2>Meus Cartões</h2>
@@ -339,6 +366,15 @@
                     </select>
                 </div>
                 <div class="form-group"><label>Data da Compra</label><input type="date" id="t-date" class="form-control" required></div>
+                
+                <div class="form-group" id="paid-checkbox-group">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="t-paid" checked>
+                        <span>💵 Já foi pago?</span>
+                    </label>
+                    <small style="color:var(--text-secondary); display:block; margin-top:2px;">Se desmarcado, a conta entrará como pendente e não afetará o saldo até ser paga.</small>
+                </div>
+
                 <div class="form-group" id="card-select-group">
                     <label>Pagar com Cartão?</label>
                     <select id="t-card" class="form-control" onchange="toggleInstallmentField()"><option value="">Dinheiro / Débito</option></select>
@@ -411,8 +447,8 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        let state = { transactions: [], cards: [], logs: [], user: null, currentGroupId: null };
-        let unsubscribeTransactions, unsubscribeCards, unsubscribeLogs;
+        let state = { transactions: [], cards: [], logs: [], payments: [], user: null, currentGroupId: null };
+        let unsubscribeTransactions, unsubscribeCards, unsubscribeLogs, unsubscribePayments;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -542,6 +578,13 @@
                 updateUI();
             });
 
+            // Listener para Logs de Pagamentos
+            const pQuery = query(collection(db, 'groups', state.currentGroupId, 'payment_logs'), orderBy('timestamp', 'desc'), limit(50));
+            unsubscribePayments = onSnapshot(pQuery, (snap) => {
+                state.payments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderPayments();
+            });
+
             const lQuery = query(collection(db, 'groups', state.currentGroupId, 'logs'), orderBy('timestamp', 'desc'), limit(50));
             unsubscribeLogs = onSnapshot(lQuery, (snap) => {
                 state.logs = snap.docs.map(doc => doc.data());
@@ -553,6 +596,7 @@
             if(unsubscribeTransactions) unsubscribeTransactions();
             if(unsubscribeCards) unsubscribeCards();
             if(unsubscribeLogs) unsubscribeLogs();
+            if(unsubscribePayments) unsubscribePayments();
         }
 
         window.handleGoogleLogin = async function() {
@@ -601,7 +645,6 @@
                 const tempId = 'temp_' + Date.now();
                 const optimisticTx = { id: tempId, ...tData };
                 
-                // Adiciona localmente imediatamente
                 state.transactions.unshift(optimisticTx);
                 updateUI();
                 showToast('Salvo!', 'success');
@@ -617,6 +660,54 @@
                     updateUI();
                     showToast('Erro ao salvar.', 'error');
                     throw e;
+                }
+            }
+        };
+
+        // NOVA FUNÇÃO: Marcar como Pago
+        window.markAsPaid = async function(id) {
+            const t = state.transactions.find(x => x.id === id);
+            if(!t) return;
+            if(t.paid) return showToast('Esta conta já está paga.', 'info');
+
+            if(confirm(`Confirmar pagamento de ${formatCurrency(t.amount)} - ${t.desc}?`)) {
+                try {
+                    // 1. Atualiza a transação principal
+                    await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: true });
+                    
+                    // 2. Adiciona no Log de Pagamentos Separado
+                    await addDoc(collection(db, 'groups', state.currentGroupId, 'payment_logs'), {
+                        transactionId: id,
+                        description: t.desc,
+                        amount: parseFloat(t.amount),
+                        user: state.user.email,
+                        timestamp: serverTimestamp()
+                    });
+
+                    // 3. Adiciona log geral
+                    addLog('payment', `Pagou conta: ${t.desc}`);
+                    showToast('Conta paga com sucesso!', 'success');
+                } catch(e) {
+                    console.error(e);
+                    showToast('Erro ao registrar pagamento.', 'error');
+                }
+            }
+        };
+
+        // NOVA FUNÇÃO: Desfazer Pagamento (Marcar como Pendente)
+        window.markAsUnpaid = async function(id) {
+            const t = state.transactions.find(x => x.id === id);
+            if(!t) return;
+            
+            if(confirm(`Marcar ${t.desc} como pendente novamente?`)) {
+                try {
+                    await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: false });
+                    // Opcional: remover do log de pagamentos ou apenas marcar visualmente. 
+                    // Para simplificar, apenas desmarcamos a transação.
+                    addLog('revert', `Reverteu pagamento: ${t.desc}`);
+                    showToast('Marcado como pendente.', 'info');
+                } catch(e) {
+                    showToast('Erro ao atualizar.', 'error');
                 }
             }
         };
@@ -682,6 +773,8 @@
                          const colRef = collection(db, 'groups', state.currentGroupId, 'transactions');
                          data.transactions.forEach(t => {
                             const newRef = doc(colRef);
+                            // Migração: se não tiver paid, assume true
+                            if(t.paid === undefined) t.paid = true;
                             batch.set(newRef, t);
                          });
                          await batch.commit();
@@ -720,18 +813,20 @@
         window.toggleSidebar = function() { document.getElementById('app-sidebar').classList.toggle('open'); };
         
         window.updateUI = function() { 
-            renderSummary(); renderTransactionsList(); renderCards(); updateCardSelect(); renderMonthlyChart(); renderLogs(); 
+            renderSummary(); renderTransactionsList(); renderCards(); updateCardSelect(); renderMonthlyChart(); renderLogs(); renderPayments();
         };
 
         function renderSummary() {
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const totalIncomeAll = state.transactions.filter(t => t.type === 'income').reduce((a, b) => a + parseFloat(b.amount), 0);
-            const totalExpenseAll = state.transactions.filter(t => t.type === 'expense').reduce((a, b) => a + parseFloat(b.amount), 0);
+            
+            // FILTRA APENAS PAGOS PARA O CALCULO
+            const totalIncomeAll = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const totalExpenseAll = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
 
-            const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
-            const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(currentMonthKey) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthKey) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-income').textContent = formatCurrency(income);
             document.getElementById('total-expense').textContent = formatCurrency(expense);
 
@@ -739,6 +834,22 @@
             const el = document.getElementById('month-balance');
             el.textContent = formatCurrency(monthBalance);
             el.className = 'value ' + (monthBalance >= 0 ? 'text-success' : 'text-danger');
+        }
+
+        function renderPayments() {
+            const container = document.getElementById('payments-list');
+            if(!state.payments.length) { container.innerHTML = '<div class="empty-state">Nenhum pagamento registrado.</div>'; return; }
+            
+            container.innerHTML = state.payments.map(p => {
+                const d = p.timestamp && p.timestamp.toDate ? p.timestamp.toDate().toLocaleString('pt-BR') : '';
+                return `<div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.05rem; color: var(--text-primary);">${p.description}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Pago por: <strong>${p.user}</strong> • ${d}</div>
+                    </div>
+                    <div style="font-weight: bold; color: var(--success); font-size: 1.1rem;">+ ${formatCurrency(p.amount, false)}</div>
+                </div>`;
+            }).join('');
         }
 
         function renderTransactionsList() {
@@ -755,8 +866,20 @@
                 const futureTag = isFuture ? `<span class="future-indicator">(Futuro)</span>` : '';
                 let tag = '';
                 if(t.cardId) { const c = state.cards.find(x => x.id == t.cardId); if(c) tag = `<span class="tag">${c.name}</span>`; }
-                const btn = act ? `<div class="action-buttons"><button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button><button class="btn btn-sm btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteTransaction('${t.id}')">🗑</button></div>` : '';
-                return `<div class="list-item"><div class="item-info"><h4>${t.desc} ${tag} ${futureTag}</h4><p>${formatDate(t.date)} • ${t.category}</p></div><div style="display:flex; align-items:center;"><div class="item-amount ${col}" style="margin-right: 15px;">${sign} ${formatCurrency(t.amount, false)}</div>${btn}</div></div>`;
+                
+                // STATUS DE PAGAMENTO
+                let statusBadge = '';
+                let payBtn = '';
+                if(!t.paid) {
+                    statusBadge = `<span style="font-size:0.7rem; background:var(--warning); color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">PENDENTE</span>`;
+                    payBtn = `<button class="btn-pay" onclick="markAsPaid('${t.id}')">💰 Pagar</button>`;
+                }
+
+                const btn = act ? `<div class="action-buttons">${payBtn}<button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button><button class="btn btn-sm btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteTransaction('${t.id}')">🗑</button></div>` : '';
+                
+                const pendingClass = !t.paid ? 'pending' : '';
+
+                return `<div class="list-item ${pendingClass}"><div class="item-info"><h4>${t.desc} ${tag} ${statusBadge} ${futureTag}</h4><p>${formatDate(t.date)} • ${t.category}</p></div><div style="display:flex; align-items:center;"><div class="item-amount ${col}" style="margin-right: 15px;">${sign} ${formatCurrency(t.amount, false)}</div>${btn}</div></div>`;
             };
             list.innerHTML = filtered.length ? filtered.map(t => gen(t, true)).join('') : '<div class="empty-state">Nada.</div>';
             recent.innerHTML = state.transactions.slice(0, 5).map(t => gen(t, false)).join('');
@@ -766,7 +889,7 @@
             const c = document.getElementById('cards-container');
             if(!state.cards.length) { c.innerHTML = '<div class="empty-state">Sem cartões.</div>'; return; }
             c.innerHTML = state.cards.map(card => {
-                const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((a, b) => a + parseFloat(b.amount), 0);
+                const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
                 const pct = Math.min((spent / card.limit) * 100, 100);
                 return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
                     <div class="flex-between" style="margin:0; color:white;">
@@ -798,7 +921,7 @@
             if(!state.logs.length) { c.innerHTML = '<div class="empty-state">Sem logs.</div>'; return; }
             c.innerHTML = state.logs.map(l => {
                 const d = l.timestamp && l.timestamp.toDate ? l.timestamp.toDate().toLocaleString('pt-BR') : '';
-                const color = l.type === 'add' ? 'var(--success)' : (l.type === 'delete' ? 'var(--danger)' : 'var(--warning)');
+                const color = l.type === 'add' ? 'var(--success)' : (l.type === 'delete' ? 'var(--danger)' : (l.type === 'payment' ? 'var(--info)' : 'var(--warning)'));
                 return `<div style="position: relative; padding-left: 20px; margin-bottom: 10px;">
                     <div style="position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 2px solid var(--bg-card);"></div>
                     <div style="font-size: 0.8rem; color: var(--text-secondary);">${d} • <strong>${l.user}</strong></div>
@@ -819,8 +942,9 @@
                 months.push({ key: k, label, isFuture: offset > 0 });
             }
             const data = months.map(m => {
-                const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(b.amount),0);
-                const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(b.amount),0);
+                // Gráfico só considera PAGOS
+                const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key) && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
+                const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key) && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
                 return { ...m, inc, exp };
             });
             const max = Math.max(...data.map(d=>Math.max(d.inc,d.exp))) || 100;
@@ -848,8 +972,15 @@
             document.querySelectorAll('.radio-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
             const cg = document.getElementById('card-select-group');
+            const pg = document.getElementById('paid-checkbox-group');
+            
             if(cg) cg.style.display = type === 'expense' ? 'block' : 'none';
-            if(type === 'income') { const s = document.getElementById('t-card'); if(s) s.value = ""; toggleInstallmentField(); }
+            if(pg) pg.style.display = type === 'expense' ? 'block' : 'none'; // Só mostra opção de Pago para Despesas
+
+            if(type === 'income') { 
+                const s = document.getElementById('t-card'); if(s) s.value = ""; 
+                toggleInstallmentField(); 
+            }
         };
         window.toggleInstallmentField = function() {
             const cardId = document.getElementById('t-card').value;
@@ -865,6 +996,8 @@
             document.getElementById('c-id').value = "";
             document.getElementById('t-date').valueAsDate = new Date();
             document.getElementById('installment-group').classList.add('hidden');
+            document.getElementById('paid-checkbox-group').style.display = 'none'; // Esconde checkbox ao fechar
+            document.getElementById('t-paid').checked = true; // Reseta para pago
             selectType('income', document.getElementById('opt-income'));
         };
         window.openTransactionModal = function(id = null) {
@@ -880,6 +1013,7 @@
                 document.getElementById('t-category').value = t.category;
                 document.getElementById('t-date').value = t.date;
                 document.getElementById('t-card').value = t.cardId || "";
+                document.getElementById('t-paid').checked = t.paid !== false; // Default true se undefined
                 document.getElementById('installment-group').classList.add('hidden'); 
                 selectType(t.type, document.getElementById(t.type === 'income' ? 'opt-income' : 'opt-expense'));
             } else {
@@ -915,7 +1049,8 @@
                 category: document.getElementById('t-category').value, 
                 date: document.getElementById('t-date').value, 
                 cardId: cardId || null,
-                installments: document.getElementById('t-installments').value 
+                installments: document.getElementById('t-installments').value,
+                paid: document.getElementById('t-paid').checked // Salva status de pago
             };
             saveTransaction(tData, id || null);
             closeModals();
@@ -931,9 +1066,20 @@
 
         window.exportPDF = function() {
             const container = document.getElementById('pdf-container');
+            // TRUQUE: Traz o container temporariamente para a viewport para renderizar corretamente
+            const originalStyle = container.getAttribute('style');
+            container.style.position = 'absolute';
+            container.style.top = '0';
+            container.style.left = '0';
+            container.style.zIndex = '-1';
+            container.style.visibility = 'visible';
+            container.style.width = '800px';
+            container.style.background = 'white';
+            container.style.color = '#333';
+
             const chartSvg = document.getElementById('monthly-chart-container').innerHTML;
-            const income = state.transactions.filter(t => t.type === 'income').reduce((a,b)=>a+parseFloat(b.amount),0);
-            const expense = state.transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+parseFloat(b.amount),0);
+            const income = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
+            const expense = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
             
             let html = `<div class="pdf-header"><h1>Relatório Família</h1><p>${new Date().toLocaleString('pt-BR')}</p></div>
             <div class="pdf-section">
@@ -946,14 +1092,22 @@
             </div>
             <div class="pdf-section"><h3>Projeção</h3><div style="border:1px solid #eee; padding:10px; height:200px; display:flex; align-items:center; justify-content:center;">${chartSvg}</div></div>
             <div class="pdf-section">
-                <h3>Transações</h3>
+                <h3>Transações Pagas</h3>
                 <table class="pdf-table"><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>
-                ${state.transactions.map(t => `<tr><td>${formatDate(t.date)}</td><td>${t.desc}</td><td style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'} ${formatCurrency(t.amount, false)}</td></tr>`).join('')}
+                ${state.transactions.filter(t=>t.paid).map(t => `<tr><td>${formatDate(t.date)}</td><td>${t.desc}</td><td style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'} ${formatCurrency(t.amount, false)}</td></tr>`).join('')}
                 </tbody></table>
             </div>`;
+            
             container.innerHTML = html;
+            
             const opt = { margin: 0.5, filename: `Financas_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
-            html2pdf().set(opt).from(container).save().then(() => { container.innerHTML = ''; showToast('PDF gerado!', 'success'); });
+            
+            html2pdf().set(opt).from(container).save().then(() => { 
+                // Restaura estilo original e limpa
+                container.setAttribute('style', originalStyle);
+                container.innerHTML = ''; 
+                showToast('PDF gerado!', 'success'); 
+            });
         };
 
         function formatCurrency(val, sym=true) { const f = parseFloat(val).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); return sym ? `R$ ${f}` : f; }
