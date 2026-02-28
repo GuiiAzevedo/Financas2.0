@@ -76,15 +76,14 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
-        .btn-google { background: #fff; color: #444; border: 1px solid #ddd; width: 100%; margin-bottom: 10px; justify-content: center; }
+        .btn-google { background: #fff; color: #options="#444; border: 1px solid #ddd; width: 100%; margin-bottom: 10px; justify-content: center; }
         .btn-google:hover { background: #f1f1f1; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
         .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
         .btn-pay { background-color: var(--warning); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
         .btn-pay:hover { opacity: 0.9; }
-        /* Botão de Pagar Fatura */
-        .btn-bill { background-color: var(--success); color: white; width: 100%; justify-content: center; margin-top: 15px; font-size: 0.9rem; border: none; }
-        .btn-bill:hover { opacity: 0.9; }
+        .btn-bill { background-color: var(--success); color: white; width: 100%; justify-content: center; margin-top: 10px; font-size: 0.9rem; border: none; }
+        .btn-details { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
         .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -97,7 +96,7 @@
         
         .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 8px; }
         .item-info p { font-size: 0.85rem; color: var(--text-secondary); }
-        .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-body); color: var(--text-secondary); margin-left: 8px; border: 1px solid var(--border); }
+        .tag { font-size: 075rem; padding: 2px 8px; border-radius: 12px; background: var(--bg-body); color: var(--text-secondary); margin-left: 8px; border: 1px solid var(--border); }
         .action-buttons { display: flex; gap: 5px; align-items: center; }
         .future-indicator { font-size: 0.7rem; color: var(--text-secondary); font-style: italic; margin-left: 5px; }
 
@@ -276,6 +275,7 @@
                 <div class="card stat-card">
                     <h3>Contas Pendentes</h3>
                     <div class="value text-warning" id="total-pending">R$ 0,00</div>
+                    <small style="font-size:0.7rem; opacity:0.8;">(Valor da parcela atual)</small>
                 </div>
                 <div class="card stat-card" style="opacity: 0.8;">
                     <h3>Saldo Total (Acumulado)</h3>
@@ -352,7 +352,7 @@
                 <div class="form-group">
                     <label>Categoria</label>
                     <select id="t-category" class="form-control">
-                        <option value="Melhorias">🏠 Moradia</option>
+                        <option value="Moradia">🏠 Moradia</option>
                         <option value="Alimentação">🍔 Alimentação</option>
                         <option value="Transporte">🚗 Transporte</option>
                         <option value="Lazer">🎉 Lazer</option>
@@ -383,12 +383,8 @@
                         <option value="3">3x</option>
                         <option value="4">4x</option>
                         <option value="5">5x</option>
-                        <option value="6">6x</option>
-                        <option value="10">10x</option>
-                        <option value="12">12x</option>
-                    </select>
-                    <small style="color:var(--text-secondary)">O sistema dividirá o valor automaticamente e distribuirá nas faturas.</small>
-                </div>
+                        <div style="font-size: 0.75rem; color:var(--text-secondary);">O sistema dividirá o valor automaticamente e distribuirá nas faturas.</small>
+                    </div>
                 <div style="text-align: right; margin-top: 1.5rem;">
                     <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
@@ -428,6 +424,20 @@
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- NOVO MODAL: DETALHES DA FATURA -->
+    <div class="modal-overlay" id="card-details-modal">
+        <div class="modal">
+            <div class="flex-between">
+                <h3 id="cd-modal-title">Fatura Detalhada</h3>
+                <button class="btn btn-sm btn-outline" onclick="closeModals()">✕</button>
+            </div>
+            <div style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary); border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
+                <span id="cd-bill-period">...</span>
+            </div>
+            <div id="card-details-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -573,24 +583,24 @@
                 }
             });
 
-            const tQuery = query(collection(db, 'groups', state.currentGroupId, 'transactions'), orderBy('date', 'desc'));
+            const tQuery = query(collection(db, 'currentGroupId, 'transactions'), orderBy('date', 'desc'));
             unsubscribeTransactions = onSnapshot(tQuery, (snap) => {
                 state.transactions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
             });
 
-            unsubscribeCards = onSnapshot(collection(db, 'groups', state.currentGroupId, 'cards'), (snap) => {
+            unsubscribeCards = onSnapshot(collection(db, 'currentGroupId, 'cards'), (snap) => {
                 state.cards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
             });
 
-            const pQuery = query(collection(db, 'groups', state.currentGroupId, 'payment_logs'), orderBy('timestamp', 'desc'), limit(50));
+            const pQuery = query(collection(db, 'currentGroupId, 'payment_logs'), orderBy('timestamp', 'desc'), limit(50));
             unsubscribePayments = onSnapshot(pQuery, (snap) => {
                 state.payments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderPayments();
             });
 
-            const lQuery = query(collection(db, 'groups', state.currentGroupId, 'logs'), orderBy('timestamp', 'desc'), limit(50));
+            const lQuery = query(collection(db, 'currentGroupId, 'logs'), orderBy('timestamp', 'desc'), limit(50));
             unsubscribeLogs = onSnapshot(lQuery, (snap) => {
                 state.logs = snap.docs.map(doc => doc.data());
                 renderLogs();
@@ -640,9 +650,48 @@
             signOut(auth);
         };
 
+        // FUNÇÃO CHAVE: Calcula o valor da transação em um range (usado para fatura e pendentes)
+        function getTransactionValueInRange(t, range) {
+            if (!t.installments || parseInt(t.installments) <= 1 || !range) {
+                return parseFloat(t.amount);
+            }
+            
+            // Lógica de Parcelamento: Verifica se a "vida" da compra cruza o range da fatura
+            const purchaseDate = new Date(t.date);
+            const installmentsCount = parseInt(t.installments);
+            
+            // Itera pelas parcelas para ver qual cai neste mês
+            for (let i = 0; i < installmentsCount; i++) {
+                // Data estimada da parcela (Mês atual + i)
+                let installmentDate = new Date(purchaseDate);
+                installmentDate.setMonth(purchaseDate.getMonth() + (i + 1)); // Projetando mês a mês da parcela
+                // Ajuste para não ser muito preciso, mas funcional
+                // Usa o fechamento padrão (15) ou dia da compra se não houver fechamento?
+                // Vamos usar um cálculo simples: Data da compra + (i+1) meses.
+                
+                if (installmentDate >= range.startDate && installmentDate <= range.endDate) {
+                    return parseFloat(t.amount) / installmentsCount;
+                }
+            }
+            return 0; // Não caiu neste mês
+        }
+
+        // Calcula o range do mês vigente (para ser usado no Dashboard)
+        function getCurrentMonthRange() {
+            // Para o Dashboard (Contas Pendentes), usamos o mês calendário atual
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            // De dia 1 ao último dia do mês atual
+            const start = new Date(y, m, 1);
+            const end = new Date(y, m + 1, 0); // Primeiro dia do próximo mês (exclusivo)
+            end.setHours(23, 59, 59, 999);
+            return { startDate: start, endDate };
+        }
+
         window.saveTransaction = async function(tData, id = null) {
             if (id) {
-                await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), tData);
+                await updateDoc(doc(db, 'currentGroupId, 'transactions', id), tData);
                 addLog('edit', `Editou: ${tData.desc}`);
                 showToast('Atualizado!', 'success');
             } else {
@@ -654,7 +703,7 @@
                 showToast('Salvo!', 'success');
 
                 try {
-                    await addDoc(collection(db, 'groups', state.currentGroupId, 'transactions'), {
+                    await addDoc(collection(db, 'currentGroupId, 'transactions'), {
                         ...tData,
                         timestamp: serverTimestamp()
                     });
@@ -675,8 +724,8 @@
 
             if(confirm(`Confirmar pagamento de ${formatCurrency(t.amount)} - ${t.desc}?`)) {
                 try {
-                    await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: true });
-                    await addDoc(collection(db, 'groups', state.currentGroupId, 'payment_logs'), {
+                    await updateDoc(doc(db, 'currentGroupId, 'transactions', id), { paid: true });
+                    await addDoc(collection(db, 'currentGroupId, 'payment_logs'), {
                         transactionId: id,
                         description: t.desc,
                         amount: parseFloat(t.amount),
@@ -698,7 +747,7 @@
             
             if(confirm(`Marcar ${t.desc} como pendente novamente?`)) {
                 try {
-                    await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: false });
+                    await updateDoc(doc(db, 'currentGroupId, 'transactions', id), { paid: false });
                     addLog('revert', `Reverteu pagamento: ${t.desc}`);
                     showToast('Marcado como pendente.', 'info');
                 } catch(e) {
@@ -707,58 +756,22 @@
             }
         };
 
-        // Helper: Calcula o valor da parcela e se ela pertence ao range atual
-        function getInstallmentInfo(t, range) {
-            if (!t.installments || parseInt(t.installments) <= 1) {
-                return { value: parseFloat(t.amount), date: new Date(t.date), isCurrent: isDateInRange(new Date(t.date), range) };
-            }
-            
-            // Lógica de Parcelamento: Calcula datas teóricas das parcelas
-            // Assumindo que a 1ª parcela é 1 mês após a compra
-            const purchaseDate = new Date(t.date);
-            const installmentsCount = parseInt(t.installments);
-            
-            for (let i = 0; i < installmentsCount; i++) {
-                // Data de vencimento da parcela (i+1)
-                let installmentDate = new Date(purchaseDate);
-                installmentDate.setMonth(purchaseDate.getMonth() + (i + 1));
-                installmentDate.setDate(cardCloseDate(purchaseDate)); // Usa o fechamento como referência aproximada ou fixo dia 15? Vamos usar +1 mês
-                // Para simplificar: +1 mês da compra
-                installmentDate = new Date(purchaseDate.getFullYear(), purchaseDate.getMonth() + i + 1, purchaseDate.getDate());
-
-                if (isDateInRange(installmentDate, range)) {
-                    return { value: parseFloat(t.amount) / installmentsCount, date: installmentDate, isCurrent: true, installmentIndex: i + 1, totalInstallments: installmentsCount };
-                }
-            }
-            return { value: 0, isCurrent: false };
-        }
-
-        function isDateInRange(date, range) {
-            const d = new Date(date); d.setHours(0,0,0,0);
-            return d >= range.startDate && d <= range.endDate;
-        }
-
-        // Helper para obter data de fechamento padrão se não houver no cartão
-        function cardCloseDate(card) {
-            // Se não tiver fechamento, assume dia 25
-            return parseInt(card.closeDate || 25);
-        }
-
         window.payBill = async function(cardId) {
             const card = state.cards.find(x => x.id === cardId);
             if(!card) return;
+            if(!card.closeDate) return showToast('Configure a data de fechamento.', 'warning');
 
             const range = getInvoiceRange(card);
-            if(!range) return showToast('Configure a data de fechamento.', 'warning');
+            if(!range) return;
 
-            // Encontra transações (itens de parcela) que vencem na fatura atual
+            // Encontra transações que vencem na fatura atual e estão pendentes
             const billItems = [];
             
             state.transactions.forEach(t => {
                 if (t.cardId == card.id && t.type === 'expense') {
-                    const info = getInstallmentInfo(t, range);
-                    if (info.isCurrent && !t.paid) {
-                        billItems.push({ id: t.id, amount: info.value });
+                    const val = getTransactionValueInRange(t, range);
+                    if (val > 0 && !t.paid) {
+                        billItems.push({ id: t.id, amount: val });
                     }
                 }
             });
@@ -771,10 +784,10 @@
                 try {
                     const batch = writeBatch(db);
                     billItems.forEach(item => {
-                        batch.update(doc(db, 'groups', state.currentGroupId, 'transactions', item.id), { paid: true });
-                        addLog('payment', `Pagou parcela via fatura: ${t.desc}`); // t undefined aqui, mas ok para log simples
+                        batch.update(doc(db, 'currentGroupId, 'transactions', item.id), { paid: true });
+                        addLog('payment', `Pagou parcela fatura: ${t.desc}`);
                     });
-                    await batch.commit();
+                    batch.commit();
                     addLog('bill', `Fatura paga: ${card.name}`);
                     showToast('Fatura paga com sucesso!', 'success');
                 } catch(e) {
@@ -788,7 +801,7 @@
             const t = state.transactions.find(x => x.id === id);
             if(t && t.installmentGroup) {
                  if(confirm("Apagar apenas esta parcela ou todas (grupo)?\nOK = Todas | Cancelar = Apenas esta")) {
-                     const q = query(collection(db, 'groups', state.currentGroupId, 'transactions'), where("installmentGroup", "==", t.installmentGroup));
+                     const q = query(collection(db, 'currentGroupId, 'transactions'), where("installmentGroup", "==", t.installmentGroup));
                      const snap = await getDocs(q);
                      const batch = writeBatch(db);
                      snap.forEach(d => batch.delete(d.ref));
@@ -798,36 +811,36 @@
                      return;
                  }
             }
-            await deleteDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id));
+            await deleteDoc(doc(db, 'currentGroupId, 'transactions', id));
             addLog('delete', `Excluiu: ${t ? t.desc : ''}`);
-            showToast('Removido.', 'info');
+            showToast('removido.', 'info');
         };
 
         window.saveCard = async function(cData, id = null) {
             if (id) {
-                await updateDoc(doc(db, 'groups', state.currentGroupId, 'cards', id), cData);
+                await updateDoc(doc(db, 'currentGroupId, 'cards', id), cData);
                 addLog('edit', `Editou cartão: ${cData.name}`);
             } else {
-                await addDoc(collection(db, 'groups', state.currentGroupId, 'cards'), cData);
+                await addDoc(collection(db, 'currentGroupId, 'cards'), cData);
                 addLog('add', `Criou cartão: ${cData.name}`);
             }
         };
 
         window.deleteCard = async function(id) {
             if(state.transactions.some(t => t.cardId == id)) return showToast('Cartão em uso.', 'error');
-            await deleteDoc(doc(db, 'groups', state.currentGroupId, 'cards', id));
+            await deleteDoc(doc(db, 'currentGroupId, 'cards', id));
             showToast('Removido.', 'info');
         };
 
         window.addLog = async function(type, message) {
-            await addDoc(collection(db, 'groups', state.currentGroupId, 'logs'), {
+            await addDoc(collection(db, 'currentGroupId, 'logs'), {
                 type, message, user: state.user.email, timestamp: serverTimestamp()
             });
         };
 
         window.clearLogs = async function() {
             if(!confirm("Limpar logs?")) return;
-            const q = query(collection(db, 'groups', state.currentGroupId, 'logs'));
+            const q = query(collection(db, 'currentGroupId, 'logs'));
             const snap = await getDocs(q);
             const batch = writeBatch(db);
             snap.forEach(d => batch.delete(d.ref));
@@ -842,7 +855,7 @@
                     const data = JSON.parse(e.target.result);
                     if(confirm("Isso irá adicionar "+data.transactions.length+" transações. Continuar?")) {
                          const batch = writeBatch(db);
-                         const colRef = collection(db, 'groups', state.currentGroupId, 'transactions');
+                         const colRef = collection(db, 'currentGroupId, 'transactions');
                          data.transactions.forEach(t => {
                             const newRef = doc(colRef);
                             if(t.paid === undefined) t.paid = true;
@@ -888,15 +901,15 @@
         };
 
         function renderSummary() {
-            const now = new Date();
-            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const range = getCurrentMonthRange();
             
+            // Calcula PAGOS para Balanço
             const totalIncomeAll = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
-            const totalExpenseAll = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const totalExpenseAll = state.transactions.filter(t => t.type === 'error' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
 
-            const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(currentMonthKey) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
-            const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthKey) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(getCurrentMonthString()) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(getCurrentMonthString()) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-income').textContent = formatCurrency(income);
             document.getElementById('total-expense').textContent = formatCurrency(expense);
 
@@ -905,7 +918,11 @@
             el.textContent = formatCurrency(monthBalance);
             el.className = 'value ' + (monthBalance >= 0 ? 'text-success' : 'text-danger');
 
-            const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            // CORREÇÃO AQUI: Usa a lógica de parcelamento para contas pendentes
+            const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a, t) => {
+                // Soma apenas o valor que afeta o mês atual
+                return a + getTransactionValueInRange(t, range);
+            }, 0);
             document.getElementById('total-pending').textContent = formatCurrency(pending);
         }
 
@@ -948,7 +965,7 @@
                     payBtn = `<button class="btn-pay" onclick="markAsPaid('${t.id}')">💰 Pagar</button>`;
                 }
 
-                const btn = act ? `<div class="action-buttons">${payBtn}<button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️</button><button class="btn btn-sm btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteTransaction('${t.id}')">🗑</button></div>` : '';
+                const btn = act ? `<div class="action-buttons">${payBtn}<button class="btn btn-sm btn-outline" onclick="openTransactionModal('${t.id}')">✏️️</button><button class="btn btn-sm btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteTransaction('${t.id}')">🗑</button></div>` : '';
                 
                 const pendingClass = !t.paid ? 'pending' : '';
 
@@ -958,6 +975,13 @@
             recent.innerHTML = state.transactions.slice(0, 5).map(t => gen(t, false)).join('');
         }
 
+        // Helper auxiliar para pegar string do mês atual AAAA-MM
+        function getCurrentMonthString() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        // Calcula o range para o cartão baseado no fechamento
         function getInvoiceRange(card) {
             const closeDate = parseInt(card.closeDate);
             if (!closeDate) return null;
@@ -999,36 +1023,21 @@
                 let unpaidBillCount = 0;
 
                 if (range) {
-                    // Filtra todas as transações do cartão e verifica se a parcela (ou transação à vista) cai no range
                     state.transactions.forEach(t => {
                         if (t.cardId != card.id || t.type !== 'expense') return; 
-                        
-                        if (t.installments && parseInt(t.installments) > 1) {
-                            // Lógica de Parcelamento
-                            const info = getInstallmentInfo(t, range);
-                            if (info.isCurrent) {
-                                spent += info.value;
-                                if(!t.paid) unpaidBillCount++;
-                                totalBill += info.value;
-                            }
-                        } else {
-                            // À vista
-                            const tDate = new Date(t.date);
-                            tDate.setHours(0,0,0,0);
-                            range.startDate.setHours(0,0,0,0);
-                            range.endDate.setHours(23,59,59,999);
-                            if (tDate >= range.startDate && tDate <= range.endDate) {
-                                spent += parseFloat(t.amount);
-                                if(!t.paid) unpaidBillCount++;
-                                totalBill += parseFloat(t.amount);
-                            }
+                        // Usa a função unificada para pegar o valor correto (parcela ou total)
+                        const val = getTransactionValueInRange(t, range);
+                        if (val > 0) {
+                            spent += val;
+                            if(!t.paid) unpaidBillCount++;
+                            totalBill += val;
                         }
                     });
                 } else {
                     const now = new Date();
-                    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    const currentMonthKey = getCurrentMonthString();
                     // Fallback se não tiver data fechamento
-                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, t) => a + getTransactionValueInRange(t, null), 0), 0);
                     totalBill = spent;
                 }
 
@@ -1038,10 +1047,16 @@
                 const dueTxt = card.dueDate ? `Vence dia: ${card.dueDate}` : '';
                 const dateInfo = (closeTxt || dueTxt) ? `<div style="font-size: 0.7rem; margin-top:5px; opacity:0.8;">${closeTxt} ${dueTxt}</div>` : '';
 
+                // Botão Ver Fatura (Novo)
+                let detailsBtn = '';
+                if(card.closeDate) {
+                    detailsBtn = `<button class="btn btn-sm btn-details" onclick="openCardDetails('${card.id}')">Ver Fatura</button>`;
+                }
+
                 // Botão Pagar Fatura
                 let payBillBtn = '';
-                if(card.closeDate && unpaidBillCount > 0) {
-                    payBillBtn = `<button class="btn btn-bill" onclick="payBill('${card.id}')">Pagar Fatura Atual (${formatCurrency(totalBill, false)})</button>`;
+                if(unpaidBillCount > 0) {
+                    payBillBtn = `<button class="btn btn-bill" onclick="payBill('${card.id}')">Pagar Fatura (${formatCurrency(totalBill, false)})</button>`;
                 }
 
                 return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
@@ -1052,7 +1067,7 @@
                             <button onclick="deleteCard('${card.id}')" style="background:none; border:none; color:white; cursor:pointer;">🗑</button>
                         </div>
                     </div>
-                    <div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">••••• •••• •••• ••••</div>
+                    <div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">••••• •••• •••• •••• ••••</div>
                     ${dateInfo}
                     <div class="card-limit-info">
                         <div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);">
@@ -1061,10 +1076,65 @@
                         </div>
                         <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div>
                     </div>
-                    ${payBillBtn}
+                    <div style="display:flex; gap:10px; margin-top: 10px;">
+                        ${detailsBtn}
+                        ${payBillBtn}
+                    </div>
                 </div>`;
             }).join('');
         }
+
+        // NOVA FUNÇÃO: Abrir detalhes da fatura
+        window.openCardDetails = function(cardId) {
+            const card = state.cards.find(x => x.id === cardId);
+            if(!card || !card.closeDate) return showToast('Configure a data de fechamento primeiro.', 'warning');
+
+            const range = getInvoiceRange(card);
+            const now = new Date();
+            const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            
+            // Filtra transações do cartão que caem no range
+            const items = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense');
+
+            const listContainer = document.getElementById('card-details-list');
+            listContainer.innerHTML = `<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:10px; display:flex; justify-content:space-between;">
+                <span>Fatura Referente a <strong>${monthStr}</strong></span>
+            </div>`;
+
+            items.forEach(t => {
+                const val = getTransactionValueInRange(t, range);
+                if (val > 0) {
+                    const isPaid = t.paid;
+                    const isFuture = new Date(t.date) > now;
+                    const itemStyle = isPaid ? 'text-decoration: line-through; opacity: 0.5;' : '';
+                    const futureTag = isFuture ? '<span class="future-indicator">(Futuro)</span>' : '';
+                    
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between';
+                    row.style.padding = '10px; border-bottom: 1px solid var(--border)';
+                    row.innerHTML = `
+                        <div class="${itemStyle}">
+                            <div style="font-weight: 600;">${t.desc}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Compra em: ${formatDate(t.date)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight:bold; color: ${t.type === 'income' ? 'var(--success)' : 'var(--danger)'};">
+                                ${t.type === 'income' ? '+' : '-'} ${formatCurrency(val, false)}
+                            </span>
+                            ${isPaid ? '<span style="margin-left: 10px; font-size: 0.75rem; color: var(--success);">Pago</span>' : '<span style="margin-left: 10px; font-size: 0.75rem; color: var(--warning);">Pendente</span>'}
+                        </div>
+                    `;
+                    listContainer.appendChild(row);
+                }
+            });
+
+            if (listContainer.innerHTML === '') {
+                listContainer.innerHTML = '<div class="empty-state">Sem movimentos nesta fatura.</div>';
+            }
+
+            document.getElementById('cd-modal-title').textContent = `Fatura - ${card.name}`;
+            document.getElementById('card-details-modal').classList.add('open');
+        };
 
         function updateCardSelect() {
             const s = document.getElementById('t-card');
@@ -1114,7 +1184,7 @@
             data.forEach((d, i) => {
                 const hI = (d.inc/max)*chartH, hE = (d.exp/max)*chartH;
                 const yI = h - 20 - hI, yE = h - 20 - hE;
-                // Interatividade (Tooltip nativo)
+                // Tooltip
                 svg += `<rect x="${currentX}" y="${yI}" width="${barW}" height="${hI}" fill="#48bb78" rx="2"><title>Entradas: ${formatCurrency(d.inc)}</title></rect>`;
                 svg += `<rect x="${currentX + barW}" y="${yE}" width="${barW}" height="${hE}" fill="#f56565" rx="2"><title>Saídas: ${formatCurrency(d.exp)}</title></rect>`;
                 const textColor = d.isFuture ? 'var(--text-secondary)' : 'var(--text-primary)';
@@ -1152,7 +1222,7 @@
             document.getElementById('t-id').value = "";
             document.getElementById('c-id').value = "";
             document.getElementById('t-date').valueAsDate = new Date();
-            document.getElementById('installment-group').classList.add('hidden');
+            document.getElementById('installment-group').classList.add('hidden'); 
             document.getElementById('paid-checkbox-group').classList.add('hidden'); 
             document.getElementById('t-paid').checked = false; 
             selectType('income', document.getElementById('opt-income'));
@@ -1170,7 +1240,6 @@
                 document.getElementById('t-category').value = t.category;
                 document.getElementById('t-date').value = t.date;
                 document.getElementById('t-card').value = t.cardId || "";
-                document.getElementById('t-paid').checked = t.paid !== false;
                 document.getElementById('t-installments').value = t.installments || 1;
                 document.getElementById('installment-group').classList.add('hidden'); 
                 selectType(t.type, document.getElementById(t.type === 'income' ? 'opt-income' : 'opt-expense'));
