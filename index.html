@@ -76,7 +76,8 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
-        .btn-google { background: #fff; color: #options="#444; border: 1px solid #ddd; width: 100%; margin-bottom: 10px; justify-content: center; }
+        /* CORREÇÃO AQUI: Corrigido o erro de sintaxe no CSS */
+        .btn-google { background: #fff; color: #444; border: 1px solid #ddd; width: 100%; margin-bottom: 10px; justify-content: center; }
         .btn-google:hover { background: #f1f1f1; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
         .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
@@ -383,8 +384,9 @@
                         <option value="3">3x</option>
                         <option value="4">4x</option>
                         <option value="5">5x</option>
-                        <div style="font-size: 0.75rem; color:var(--text-secondary);">O sistema dividirá o valor automaticamente e distribuirá nas faturas.</small>
-                    </div>
+                        <div style="font-size: 0.75rem; color:var(--text-secondary);">O sistema dividirá o valor automaticamente e distribuirá nas faturas.</div>
+                    </select>
+                </div>
                 <div style="text-align: right; margin-top: 1.5rem;">
                     <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
@@ -583,24 +585,25 @@
                 }
             });
 
-            const tQuery = query(collection(db, 'currentGroupId, 'transactions'), orderBy('date', 'desc'));
+            // CORREÇÃO: Caminho correto da subcoleção
+            const tQuery = query(collection(db, 'groups', state.currentGroupId, 'transactions'), orderBy('date', 'desc'));
             unsubscribeTransactions = onSnapshot(tQuery, (snap) => {
                 state.transactions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
             });
 
-            unsubscribeCards = onSnapshot(collection(db, 'currentGroupId, 'cards'), (snap) => {
+            unsubscribeCards = onSnapshot(collection(db, 'groups', state.currentGroupId, 'cards'), (snap) => {
                 state.cards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateUI();
             });
 
-            const pQuery = query(collection(db, 'currentGroupId, 'payment_logs'), orderBy('timestamp', 'desc'), limit(50));
+            const pQuery = query(collection(db, 'groups', state.currentGroupId, 'payment_logs'), orderBy('timestamp', 'desc'), limit(50));
             unsubscribePayments = onSnapshot(pQuery, (snap) => {
                 state.payments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderPayments();
             });
 
-            const lQuery = query(collection(db, 'currentGroupId, 'logs'), orderBy('timestamp', 'desc'), limit(50));
+            const lQuery = query(collection(db, 'groups', state.currentGroupId, 'logs'), orderBy('timestamp', 'desc'), limit(50));
             unsubscribeLogs = onSnapshot(lQuery, (snap) => {
                 state.logs = snap.docs.map(doc => doc.data());
                 renderLogs();
@@ -662,36 +665,30 @@
             
             // Itera pelas parcelas para ver qual cai neste mês
             for (let i = 0; i < installmentsCount; i++) {
-                // Data estimada da parcela (Mês atual + i)
                 let installmentDate = new Date(purchaseDate);
-                installmentDate.setMonth(purchaseDate.getMonth() + (i + 1)); // Projetando mês a mês da parcela
-                // Ajuste para não ser muito preciso, mas funcional
-                // Usa o fechamento padrão (15) ou dia da compra se não houver fechamento?
-                // Vamos usar um cálculo simples: Data da compra + (i+1) meses.
+                installmentDate.setMonth(purchaseDate.getMonth() + (i + 1));
                 
                 if (installmentDate >= range.startDate && installmentDate <= range.endDate) {
                     return parseFloat(t.amount) / installmentsCount;
                 }
             }
-            return 0; // Não caiu neste mês
+            return 0; 
         }
 
-        // Calcula o range do mês vigente (para ser usado no Dashboard)
+        // Calcula o range do mês vigente
         function getCurrentMonthRange() {
-            // Para o Dashboard (Contas Pendentes), usamos o mês calendário atual
             const now = new Date();
             const y = now.getFullYear();
             const m = now.getMonth();
-            // De dia 1 ao último dia do mês atual
             const start = new Date(y, m, 1);
-            const end = new Date(y, m + 1, 0); // Primeiro dia do próximo mês (exclusivo)
+            const end = new Date(y, m + 1, 0); 
             end.setHours(23, 59, 59, 999);
             return { startDate: start, endDate };
         }
 
         window.saveTransaction = async function(tData, id = null) {
             if (id) {
-                await updateDoc(doc(db, 'currentGroupId, 'transactions', id), tData);
+                await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), tData);
                 addLog('edit', `Editou: ${tData.desc}`);
                 showToast('Atualizado!', 'success');
             } else {
@@ -703,7 +700,7 @@
                 showToast('Salvo!', 'success');
 
                 try {
-                    await addDoc(collection(db, 'currentGroupId, 'transactions'), {
+                    await addDoc(collection(db, 'groups', state.currentGroupId, 'transactions'), {
                         ...tData,
                         timestamp: serverTimestamp()
                     });
@@ -724,8 +721,8 @@
 
             if(confirm(`Confirmar pagamento de ${formatCurrency(t.amount)} - ${t.desc}?`)) {
                 try {
-                    await updateDoc(doc(db, 'currentGroupId, 'transactions', id), { paid: true });
-                    await addDoc(collection(db, 'currentGroupId, 'payment_logs'), {
+                    await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: true });
+                    await addDoc(collection(db, 'groups', state.currentGroupId, 'payment_logs'), {
                         transactionId: id,
                         description: t.desc,
                         amount: parseFloat(t.amount),
@@ -747,7 +744,7 @@
             
             if(confirm(`Marcar ${t.desc} como pendente novamente?`)) {
                 try {
-                    await updateDoc(doc(db, 'currentGroupId, 'transactions', id), { paid: false });
+                    await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: false });
                     addLog('revert', `Reverteu pagamento: ${t.desc}`);
                     showToast('Marcado como pendente.', 'info');
                 } catch(e) {
@@ -764,14 +761,13 @@
             const range = getInvoiceRange(card);
             if(!range) return;
 
-            // Encontra transações que vencem na fatura atual e estão pendentes
             const billItems = [];
             
             state.transactions.forEach(t => {
                 if (t.cardId == card.id && t.type === 'expense') {
                     const val = getTransactionValueInRange(t, range);
                     if (val > 0 && !t.paid) {
-                        billItems.push({ id: t.id, amount: val });
+                        billItems.push({ id: t.id, amount: val, desc: t.desc });
                     }
                 }
             });
@@ -784,8 +780,8 @@
                 try {
                     const batch = writeBatch(db);
                     billItems.forEach(item => {
-                        batch.update(doc(db, 'currentGroupId, 'transactions', item.id), { paid: true });
-                        addLog('payment', `Pagou parcela fatura: ${t.desc}`);
+                        batch.update(doc(db, 'groups', state.currentGroupId, 'transactions', item.id), { paid: true });
+                        addLog('payment', `Pagou parcela fatura: ${item.desc}`);
                     });
                     batch.commit();
                     addLog('bill', `Fatura paga: ${card.name}`);
@@ -801,7 +797,7 @@
             const t = state.transactions.find(x => x.id === id);
             if(t && t.installmentGroup) {
                  if(confirm("Apagar apenas esta parcela ou todas (grupo)?\nOK = Todas | Cancelar = Apenas esta")) {
-                     const q = query(collection(db, 'currentGroupId, 'transactions'), where("installmentGroup", "==", t.installmentGroup));
+                     const q = query(collection(db, 'groups', state.currentGroupId, 'transactions'), where("installmentGroup", "==", t.installmentGroup));
                      const snap = await getDocs(q);
                      const batch = writeBatch(db);
                      snap.forEach(d => batch.delete(d.ref));
@@ -811,36 +807,36 @@
                      return;
                  }
             }
-            await deleteDoc(doc(db, 'currentGroupId, 'transactions', id));
+            await deleteDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id));
             addLog('delete', `Excluiu: ${t ? t.desc : ''}`);
             showToast('removido.', 'info');
         };
 
         window.saveCard = async function(cData, id = null) {
             if (id) {
-                await updateDoc(doc(db, 'currentGroupId, 'cards', id), cData);
+                await updateDoc(doc(db, 'groups', state.currentGroupId, 'cards', id), cData);
                 addLog('edit', `Editou cartão: ${cData.name}`);
             } else {
-                await addDoc(collection(db, 'currentGroupId, 'cards'), cData);
+                await addDoc(collection(db, 'groups', state.currentGroupId, 'cards'), cData);
                 addLog('add', `Criou cartão: ${cData.name}`);
             }
         };
 
         window.deleteCard = async function(id) {
             if(state.transactions.some(t => t.cardId == id)) return showToast('Cartão em uso.', 'error');
-            await deleteDoc(doc(db, 'currentGroupId, 'cards', id));
+            await deleteDoc(doc(db, 'groups', state.currentGroupId, 'cards', id));
             showToast('Removido.', 'info');
         };
 
         window.addLog = async function(type, message) {
-            await addDoc(collection(db, 'currentGroupId, 'logs'), {
+            await addDoc(collection(db, 'groups', state.currentGroupId, 'logs'), {
                 type, message, user: state.user.email, timestamp: serverTimestamp()
             });
         };
 
         window.clearLogs = async function() {
             if(!confirm("Limpar logs?")) return;
-            const q = query(collection(db, 'currentGroupId, 'logs'));
+            const q = query(collection(db, 'groups', state.currentGroupId, 'logs'));
             const snap = await getDocs(q);
             const batch = writeBatch(db);
             snap.forEach(d => batch.delete(d.ref));
@@ -855,7 +851,7 @@
                     const data = JSON.parse(e.target.result);
                     if(confirm("Isso irá adicionar "+data.transactions.length+" transações. Continuar?")) {
                          const batch = writeBatch(db);
-                         const colRef = collection(db, 'currentGroupId, 'transactions');
+                         const colRef = collection(db, 'groups', state.currentGroupId, 'transactions');
                          data.transactions.forEach(t => {
                             const newRef = doc(colRef);
                             if(t.paid === undefined) t.paid = true;
@@ -903,9 +899,9 @@
         function renderSummary() {
             const range = getCurrentMonthRange();
             
-            // Calcula PAGOS para Balanço
             const totalIncomeAll = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
-            const totalExpenseAll = state.transactions.filter(t => t.type === 'error' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            // CORREÇÃO: Trocado 'error' por 'expense'
+            const totalExpenseAll = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
 
             const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(getCurrentMonthString()) && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
@@ -918,9 +914,7 @@
             el.textContent = formatCurrency(monthBalance);
             el.className = 'value ' + (monthBalance >= 0 ? 'text-success' : 'text-danger');
 
-            // CORREÇÃO AQUI: Usa a lógica de parcelamento para contas pendentes
             const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a, t) => {
-                // Soma apenas o valor que afeta o mês atual
                 return a + getTransactionValueInRange(t, range);
             }, 0);
             document.getElementById('total-pending').textContent = formatCurrency(pending);
@@ -975,13 +969,11 @@
             recent.innerHTML = state.transactions.slice(0, 5).map(t => gen(t, false)).join('');
         }
 
-        // Helper auxiliar para pegar string do mês atual AAAA-MM
         function getCurrentMonthString() {
             const d = new Date();
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         }
 
-        // Calcula o range para o cartão baseado no fechamento
         function getInvoiceRange(card) {
             const closeDate = parseInt(card.closeDate);
             if (!closeDate) return null;
@@ -1025,7 +1017,6 @@
                 if (range) {
                     state.transactions.forEach(t => {
                         if (t.cardId != card.id || t.type !== 'expense') return; 
-                        // Usa a função unificada para pegar o valor correto (parcela ou total)
                         const val = getTransactionValueInRange(t, range);
                         if (val > 0) {
                             spent += val;
@@ -1036,7 +1027,6 @@
                 } else {
                     const now = new Date();
                     const currentMonthKey = getCurrentMonthString();
-                    // Fallback se não tiver data fechamento
                     spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, t) => a + getTransactionValueInRange(t, null), 0), 0);
                     totalBill = spent;
                 }
@@ -1047,13 +1037,11 @@
                 const dueTxt = card.dueDate ? `Vence dia: ${card.dueDate}` : '';
                 const dateInfo = (closeTxt || dueTxt) ? `<div style="font-size: 0.7rem; margin-top:5px; opacity:0.8;">${closeTxt} ${dueTxt}</div>` : '';
 
-                // Botão Ver Fatura (Novo)
                 let detailsBtn = '';
                 if(card.closeDate) {
                     detailsBtn = `<button class="btn btn-sm btn-details" onclick="openCardDetails('${card.id}')">Ver Fatura</button>`;
                 }
 
-                // Botão Pagar Fatura
                 let payBillBtn = '';
                 if(unpaidBillCount > 0) {
                     payBillBtn = `<button class="btn btn-bill" onclick="payBill('${card.id}')">Pagar Fatura (${formatCurrency(totalBill, false)})</button>`;
@@ -1084,7 +1072,6 @@
             }).join('');
         }
 
-        // NOVA FUNÇÃO: Abrir detalhes da fatura
         window.openCardDetails = function(cardId) {
             const card = state.cards.find(x => x.id === cardId);
             if(!card || !card.closeDate) return showToast('Configure a data de fechamento primeiro.', 'warning');
@@ -1093,7 +1080,6 @@
             const now = new Date();
             const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
-            // Filtra transações do cartão que caem no range
             const items = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense');
 
             const listContainer = document.getElementById('card-details-list');
@@ -1111,7 +1097,7 @@
                     
                     const row = document.createElement('div');
                     row.className = 'flex items-center justify-between';
-                    row.style.padding = '10px; border-bottom: 1px solid var(--border)';
+                    row.style.cssText = "padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;";
                     row.innerHTML = `
                         <div class="${itemStyle}">
                             <div style="font-weight: 600;">${t.desc}</div>
@@ -1128,7 +1114,7 @@
                 }
             });
 
-            if (listContainer.innerHTML === '') {
+            if (listContainer.children.length <= 1) {
                 listContainer.innerHTML = '<div class="empty-state">Sem movimentos nesta fatura.</div>';
             }
 
@@ -1184,7 +1170,6 @@
             data.forEach((d, i) => {
                 const hI = (d.inc/max)*chartH, hE = (d.exp/max)*chartH;
                 const yI = h - 20 - hI, yE = h - 20 - hE;
-                // Tooltip
                 svg += `<rect x="${currentX}" y="${yI}" width="${barW}" height="${hI}" fill="#48bb78" rx="2"><title>Entradas: ${formatCurrency(d.inc)}</title></rect>`;
                 svg += `<rect x="${currentX + barW}" y="${yE}" width="${barW}" height="${hE}" fill="#f56565" rx="2"><title>Saídas: ${formatCurrency(d.exp)}</title></rect>`;
                 const textColor = d.isFuture ? 'var(--text-secondary)' : 'var(--text-primary)';
