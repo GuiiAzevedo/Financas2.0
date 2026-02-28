@@ -35,14 +35,15 @@
             background-color: var(--bg-body); 
             color: var(--text-primary); 
             line-height: 1.5; 
-            height: 100dvh; 
+            height: 100vh; /* Fallback desktop */
+            height: 100dvh; /* Mobile PWA */
             display: flex; 
             overflow: hidden; 
             flex-direction: column;
             transition: background 0.3s, color 0.3s; 
         }
 
-        .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; flex-shrink: 0; }
+        .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; flex-shrink: 0; height: 100%; }
         
         .main-content { 
             flex: 1; 
@@ -54,10 +55,11 @@
             min-height: 0; 
             touch-action: pan-y; 
             -webkit-overflow-scrolling: touch; 
+            background-color: var(--bg-body); /* Garante fundo para cobrir gaps */
         }
 
         .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
-        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; overflow-y: auto; }
         .nav-item { padding: 0.75rem 1rem; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover { background-color: var(--bg-body); color: var(--primary); }
         .nav-item.active { background-color: var(--primary); color: white; }
@@ -80,7 +82,6 @@
         .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); }
 
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
-        /* Estilo para item pendente (opaco) */
         .list-item.pending { opacity: 0.6; border-left: 4px solid var(--warning); }
         
         .item-info h4 { font-size: 1rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 8px; }
@@ -106,7 +107,6 @@
         .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
         .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; background: var(--bg-body); color: var(--text-primary); }
         
-        /* Checkbox Customizado */
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; margin-top: 5px;}
         .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;}
         .checkbox-wrapper span { font-size: 0.9rem; color: var(--text-secondary); }
@@ -128,18 +128,14 @@
 
         .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
 
-        /* PDF FIX CSS */
+        /* PDF FIX CSS - Escondido por padrão */
         #pdf-container { 
-            position: absolute; 
-            top: -9999px; 
-            left: -9999px; 
+            display: none; 
             width: 800px; 
             background: white; 
             color: #333; 
             padding: 40px; 
             font-family: Helvetica, Arial, sans-serif;
-            /* Garante que o html2canvas veja o elemento */
-            visibility: hidden; 
         }
         .pdf-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #5a67d8; padding-bottom: 10px; }
         .pdf-section { margin-bottom: 30px; }
@@ -149,7 +145,7 @@
 
         @media (max-width: 768px) {
             body { }
-            .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
+            .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); width: 280px; }
             .sidebar.open { transform: translateX(260px); left: -260px; }
             .mobile-menu-btn { display: flex; }
             .main-content { padding: 5rem 1rem 5rem 1rem; }
@@ -255,7 +251,7 @@
                 <li class="nav-item" onclick="showSection('logs', this)"><span>📜</span> Logs</li>
             </ul>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
             <button class="btn btn-outline btn-sm" onclick="toggleTheme()" id="theme-btn">🌙 Modo Escuro</button>
             <button class="btn btn-outline btn-sm" onclick="handleLogout()" style="color: var(--danger); border-color: var(--danger);">Sair da Conta</button>
         </div>
@@ -309,7 +305,6 @@
             </div>
         </section>
 
-        <!-- NOVA SEÇÃO DE PAGAMENTOS -->
         <section id="payments" class="view-section hidden">
             <div class="flex-between">
                 <h2>Histórico de Pagamentos</h2>
@@ -367,9 +362,9 @@
                 </div>
                 <div class="form-group"><label>Data da Compra</label><input type="date" id="t-date" class="form-control" required></div>
                 
-                <div class="form-group" id="paid-checkbox-group">
+                <div class="form-group hidden" id="paid-checkbox-group">
                     <label class="checkbox-wrapper">
-                        <input type="checkbox" id="t-paid" checked>
+                        <input type="checkbox" id="t-paid">
                         <span>💵 Já foi pago?</span>
                     </label>
                     <small style="color:var(--text-secondary); display:block; margin-top:2px;">Se desmarcado, a conta entrará como pendente e não afetará o saldo até ser paga.</small>
@@ -416,6 +411,17 @@
                     <select id="c-color" class="form-control">
                         <option value="#667eea">Roxo</option><option value="#48bb78">Verde</option><option value="#ed8936">Laranja</option><option value="#f56565">Vermelho</option><option value="#4299e1">Azul</option><option value="#2d3748">Preto</option>
                     </select>
+                </div>
+                <!-- NOVOS CAMPOS DE CARTÃO -->
+                <div class="form-group">
+                    <label>Dia Fechamento (1-31)</label>
+                    <input type="number" id="c-closedate" class="form-control" min="1" max="31" placeholder="Ex: 25">
+                    <small style="color:var(--text-secondary)">Dia que a fatura fecha e o ciclo renova.</small>
+                </div>
+                <div class="form-group">
+                    <label>Dia Vencimento (1-31)</label>
+                    <input type="number" id="c-duedate" class="form-control" min="1" max="31" placeholder="Ex: 10">
+                    <small style="color:var(--text-secondary)">Dia que você precisa pagar a fatura.</small>
                 </div>
                 <div style="text-align: right; margin-top: 1.5rem;">
                     <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
@@ -578,7 +584,6 @@
                 updateUI();
             });
 
-            // Listener para Logs de Pagamentos
             const pQuery = query(collection(db, 'groups', state.currentGroupId, 'payment_logs'), orderBy('timestamp', 'desc'), limit(50));
             unsubscribePayments = onSnapshot(pQuery, (snap) => {
                 state.payments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -641,7 +646,6 @@
                 addLog('edit', `Editou: ${tData.desc}`);
                 showToast('Atualizado!', 'success');
             } else {
-                // ATUALIZAÇÃO OTIMISTA
                 const tempId = 'temp_' + Date.now();
                 const optimisticTx = { id: tempId, ...tData };
                 
@@ -664,7 +668,6 @@
             }
         };
 
-        // NOVA FUNÇÃO: Marcar como Pago
         window.markAsPaid = async function(id) {
             const t = state.transactions.find(x => x.id === id);
             if(!t) return;
@@ -672,10 +675,7 @@
 
             if(confirm(`Confirmar pagamento de ${formatCurrency(t.amount)} - ${t.desc}?`)) {
                 try {
-                    // 1. Atualiza a transação principal
                     await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: true });
-                    
-                    // 2. Adiciona no Log de Pagamentos Separado
                     await addDoc(collection(db, 'groups', state.currentGroupId, 'payment_logs'), {
                         transactionId: id,
                         description: t.desc,
@@ -683,8 +683,6 @@
                         user: state.user.email,
                         timestamp: serverTimestamp()
                     });
-
-                    // 3. Adiciona log geral
                     addLog('payment', `Pagou conta: ${t.desc}`);
                     showToast('Conta paga com sucesso!', 'success');
                 } catch(e) {
@@ -694,7 +692,6 @@
             }
         };
 
-        // NOVA FUNÇÃO: Desfazer Pagamento (Marcar como Pendente)
         window.markAsUnpaid = async function(id) {
             const t = state.transactions.find(x => x.id === id);
             if(!t) return;
@@ -702,8 +699,6 @@
             if(confirm(`Marcar ${t.desc} como pendente novamente?`)) {
                 try {
                     await updateDoc(doc(db, 'groups', state.currentGroupId, 'transactions', id), { paid: false });
-                    // Opcional: remover do log de pagamentos ou apenas marcar visualmente. 
-                    // Para simplificar, apenas desmarcamos a transação.
                     addLog('revert', `Reverteu pagamento: ${t.desc}`);
                     showToast('Marcado como pendente.', 'info');
                 } catch(e) {
@@ -773,7 +768,6 @@
                          const colRef = collection(db, 'groups', state.currentGroupId, 'transactions');
                          data.transactions.forEach(t => {
                             const newRef = doc(colRef);
-                            // Migração: se não tiver paid, assume true
                             if(t.paid === undefined) t.paid = true;
                             batch.set(newRef, t);
                          });
@@ -820,7 +814,6 @@
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
-            // FILTRA APENAS PAGOS PARA O CALCULO
             const totalIncomeAll = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             const totalExpenseAll = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
@@ -867,10 +860,11 @@
                 let tag = '';
                 if(t.cardId) { const c = state.cards.find(x => x.id == t.cardId); if(c) tag = `<span class="tag">${c.name}</span>`; }
                 
-                // STATUS DE PAGAMENTO
                 let statusBadge = '';
                 let payBtn = '';
-                if(!t.paid) {
+                
+                // Só botão de pagar se for DESPESA e NÃO PAGA
+                if(!t.paid && isExp) {
                     statusBadge = `<span style="font-size:0.7rem; background:var(--warning); color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">PENDENTE</span>`;
                     payBtn = `<button class="btn-pay" onclick="markAsPaid('${t.id}')">💰 Pagar</button>`;
                 }
@@ -885,12 +879,75 @@
             recent.innerHTML = state.transactions.slice(0, 5).map(t => gen(t, false)).join('');
         }
 
+        // Helper para calcular data da fatura atual
+        function getInvoiceRange(card) {
+            const closeDate = parseInt(card.closeDate);
+            if (!closeDate) return null; // Sem data configurada
+
+            const now = new Date();
+            const currentDay = now.getDate();
+            
+            let invoiceYear = now.getFullYear();
+            let invoiceMonth = now.getMonth();
+
+            // Se passou do dia de fechamento, a fatura é do mês que vem
+            if (currentDay > closeDate) {
+                invoiceMonth++;
+                if (invoiceMonth > 11) {
+                    invoiceMonth = 0;
+                    invoiceYear++;
+                }
+            }
+
+            // Início da fatura: Dia após fechamento do mês anterior
+            let startMonth = invoiceMonth - 1;
+            let startYear = invoiceYear;
+            if (startMonth < 0) {
+                startMonth = 11;
+                startYear--;
+            }
+            const startDate = new Date(startYear, startMonth, closeDate + 1);
+
+            // Fim da fatura: Dia de fechamento do mês atual
+            const endDate = new Date(invoiceYear, invoiceMonth, closeDate);
+
+            return { startDate, endDate };
+        }
+
         function renderCards() {
             const c = document.getElementById('cards-container');
             if(!state.cards.length) { c.innerHTML = '<div class="empty-state">Sem cartões.</div>'; return; }
+            
             c.innerHTML = state.cards.map(card => {
-                const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+                const range = getInvoiceRange(card);
+                let spent = 0;
+
+                if (range) {
+                    // Filtra transações que caem no período da fatura
+                    spent = state.transactions
+                        .filter(t => {
+                            if (t.cardId != card.id || t.type !== 'expense' || !t.paid) return false;
+                            const tDate = new Date(t.date);
+                            // Ajuste de fuso horário simples para comparação (ignorar hora)
+                            tDate.setHours(0,0,0,0);
+                            range.startDate.setHours(0,0,0,0);
+                            range.endDate.setHours(23,59,59,999);
+                            return tDate >= range.startDate && tDate <= range.endDate;
+                        })
+                        .reduce((a, b) => a + parseFloat(b.amount), 0);
+                } else {
+                    // Fallback: Soma tudo do mês atual se não houver data de fechamento
+                    const now = new Date();
+                    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.paid && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+                }
+
                 const pct = Math.min((spent / card.limit) * 100, 100);
+                
+                const closeTxt = card.closeDate ? `Fecha dia: ${card.closeDate}` : '';
+                const dueTxt = card.dueDate ? `Vence dia: ${card.dueDate}` : '';
+                const dateInfo = (closeTxt || dueTxt) ? `<div style="font-size: 0.7rem; margin-top:5px; opacity:0.8;">${closeTxt} ${dueTxt}</div>` : '';
+
                 return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
                     <div class="flex-between" style="margin:0; color:white;">
                         <div class="card-name">${card.name}</div>
@@ -900,9 +957,10 @@
                         </div>
                     </div>
                     <div style="font-size: 2rem; letter-spacing: 2px; margin: 1rem 0;">•••• •••• •••• ••••</div>
+                    ${dateInfo}
                     <div class="card-limit-info">
                         <div class="flex-between" style="margin:0; font-size: 0.8rem; color: rgba(255,255,255,0.8);">
-                            <span>Comprometido: ${formatCurrency(spent, false)}</span>
+                            <span>Fatura Atual: ${formatCurrency(spent, false)}</span>
                             <span>Limite: ${formatCurrency(card.limit, false)}</span>
                         </div>
                         <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div>
@@ -910,12 +968,14 @@
                 </div>`;
             }).join('');
         }
+
         function updateCardSelect() {
             const s = document.getElementById('t-card');
             if(!s) return;
             s.innerHTML = '<option value="">Dinheiro / Débito</option>';
             state.cards.forEach(c => { s.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
         }
+
         function renderLogs() {
             const c = document.getElementById('logs-list');
             if(!state.logs.length) { c.innerHTML = '<div class="empty-state">Sem logs.</div>'; return; }
@@ -942,7 +1002,6 @@
                 months.push({ key: k, label, isFuture: offset > 0 });
             }
             const data = months.map(m => {
-                // Gráfico só considera PAGOS
                 const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key) && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
                 const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key) && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
                 return { ...m, inc, exp };
@@ -975,7 +1034,7 @@
             const pg = document.getElementById('paid-checkbox-group');
             
             if(cg) cg.style.display = type === 'expense' ? 'block' : 'none';
-            if(pg) pg.style.display = type === 'expense' ? 'block' : 'none'; // Só mostra opção de Pago para Despesas
+            if(pg) pg.style.display = type === 'expense' ? 'block' : 'none'; 
 
             if(type === 'income') { 
                 const s = document.getElementById('t-card'); if(s) s.value = ""; 
@@ -996,8 +1055,8 @@
             document.getElementById('c-id').value = "";
             document.getElementById('t-date').valueAsDate = new Date();
             document.getElementById('installment-group').classList.add('hidden');
-            document.getElementById('paid-checkbox-group').style.display = 'none'; // Esconde checkbox ao fechar
-            document.getElementById('t-paid').checked = true; // Reseta para pago
+            document.getElementById('paid-checkbox-group').classList.add('hidden'); 
+            document.getElementById('t-paid').checked = false; // Reseta para pendente (não marcado)
             selectType('income', document.getElementById('opt-income'));
         };
         window.openTransactionModal = function(id = null) {
@@ -1013,7 +1072,7 @@
                 document.getElementById('t-category').value = t.category;
                 document.getElementById('t-date').value = t.date;
                 document.getElementById('t-card').value = t.cardId || "";
-                document.getElementById('t-paid').checked = t.paid !== false; // Default true se undefined
+                document.getElementById('t-paid').checked = t.paid !== false;
                 document.getElementById('installment-group').classList.add('hidden'); 
                 selectType(t.type, document.getElementById(t.type === 'income' ? 'opt-income' : 'opt-expense'));
             } else {
@@ -1032,6 +1091,8 @@
                 document.getElementById('c-name').value = c.name;
                 document.getElementById('c-limit').value = c.limit;
                 document.getElementById('c-color').value = c.color;
+                document.getElementById('c-closedate').value = c.closeDate || '';
+                document.getElementById('c-duedate').value = c.dueDate || '';
             } else {
                 document.getElementById('c-modal-title').textContent = "Novo Cartão";
                 document.getElementById('c-id').value = "";
@@ -1050,7 +1111,7 @@
                 date: document.getElementById('t-date').value, 
                 cardId: cardId || null,
                 installments: document.getElementById('t-installments').value,
-                paid: document.getElementById('t-paid').checked // Salva status de pago
+                paid: document.getElementById('t-paid').checked 
             };
             saveTransaction(tData, id || null);
             closeModals();
@@ -1059,20 +1120,26 @@
         document.getElementById('card-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('c-id').value;
-            const cData = { name: document.getElementById('c-name').value, limit: parseFloat(document.getElementById('c-limit').value), color: document.getElementById('c-color').value };
+            const cData = { 
+                name: document.getElementById('c-name').value, 
+                limit: parseFloat(document.getElementById('c-limit').value), 
+                color: document.getElementById('c-color').value,
+                closeDate: document.getElementById('c-closedate').value ? parseInt(document.getElementById('c-closedate').value) : null,
+                dueDate: document.getElementById('c-duedate').value ? parseInt(document.getElementById('c-duedate').value) : null
+            };
             saveCard(cData, id || null);
             closeModals();
         });
 
         window.exportPDF = function() {
             const container = document.getElementById('pdf-container');
-            // TRUQUE: Traz o container temporariamente para a viewport para renderizar corretamente
-            const originalStyle = container.getAttribute('style');
+            
+            // Mostra o container
+            container.style.display = 'block';
             container.style.position = 'absolute';
             container.style.top = '0';
             container.style.left = '0';
             container.style.zIndex = '-1';
-            container.style.visibility = 'visible';
             container.style.width = '800px';
             container.style.background = 'white';
             container.style.color = '#333';
@@ -1103,8 +1170,8 @@
             const opt = { margin: 0.5, filename: `Financas_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
             
             html2pdf().set(opt).from(container).save().then(() => { 
-                // Restaura estilo original e limpa
-                container.setAttribute('style', originalStyle);
+                // Esconde novamente
+                container.style.display = 'none'; 
                 container.innerHTML = ''; 
                 showToast('PDF gerado!', 'success'); 
             });
