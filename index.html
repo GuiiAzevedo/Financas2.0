@@ -82,6 +82,7 @@
         .btn-sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-left: 5px; }
         .btn-pay { background-color: var(--warning); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
         .btn-pay:hover { opacity: 0.9; }
+        .btn-bill { background-color: var(--success); color: white; margin-top: 15px; width: 100%; justify-content: center; }
         .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -270,7 +271,6 @@
                     <h3>Saídas (Mês)</h3>
                     <div class="value text-danger" id="total-expense">R$ 0,00</div>
                 </div>
-                <!-- NOVO: CONTAS PENDENTES -->
                 <div class="card stat-card">
                     <h3>Contas Pendentes</h3>
                     <div class="value text-warning" id="total-pending">R$ 0,00</div>
@@ -385,7 +385,7 @@
                         <option value="10">10x</option>
                         <option value="12">12x</option>
                     </select>
-                    <small style="color:var(--text-secondary)">Serão geradas transações futuras.</small>
+                    <small style="color:var(--text-secondary)">O sistema dividirá o valor automaticamente pela fatura vigente.</small>
                 </div>
                 <div style="text-align: right; margin-top: 1.5rem;">
                     <button type="button" class="btn btn-outline" onclick="closeModals()">Cancelar</button>
@@ -705,6 +705,53 @@
             }
         };
 
+        // NOVO: Pagar Fatura
+        window.payBill = async function(cardId) {
+            const card = state.cards.find(x => x.id === cardId);
+            if(!card) return;
+            if(!card.closeDate) return showToast('Configure a data de fechamento para este cartão.', 'warning');
+
+            const range = getInvoiceRange(card);
+            if(!range) return;
+
+            // Encontra transações deste cartão na fatura atual
+            const billTransactions = state.transactions.filter(t => {
+                if (t.cardId != card.id || t.type !== 'expense') return false;
+                const tDate = new Date(t.date);
+                tDate.setHours(0,0,0,0);
+                range.startDate.setHours(0,0,0,0);
+                range.endDate.setHours(23,59,59,999);
+                return tDate >= range.startDate && tDate <= range.endDate;
+            });
+
+            const unpaid = billTransactions.filter(t => !t.paid);
+            const paid = billTransactions.filter(t => t.paid);
+            
+            if(unpaid.length === 0 && paid.length > 0) return showToast('Esta fatura parece já estar paga.', 'info');
+
+            const total = billTransactions.reduce((a, t) => {
+                // Usa a lógica de parcelamento para calcular o valor exato da fatura
+                return a + calculateInstallmentValue(t, range);
+            }, 0);
+
+            if(confirm(`Pagar fatura de ${formatCurrency(total)} referente a ${card.name}?\nIsso marcará ${unpaid.length} itens como PAGOS.`)) {
+                try {
+                    const batch = writeBatch(db);
+                    unpaid.forEach(t => {
+                        batch.update(doc(db, 'groups', state.currentGroupId, 'transactions', t.id), { paid: true });
+                    addLog('payment', `Pagou parcela fatura: ${t.desc}`);
+                    // Opcional: Adicionar log único agrupado
+                    // Para simplicidade, vamos logar cada item ou um geral
+                    addLog('bill', `Pagou fatura ${card.name}: ${formatCurrency(total)}`);
+                    batch.commit();
+                    showToast('Fatura paga!', 'success');
+                });
+            } catch(e) {
+                console.error(e);
+                showToast('Erro ao pagar fatura.', 'error');
+            }
+        };
+
         window.deleteTransaction = async function(id) {
             const t = state.transactions.find(x => x.id === id);
             if(t && t.installmentGroup) {
@@ -812,7 +859,6 @@
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
-            // Calcula PAGOS para Balanço
             const totalIncomeAll = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             const totalExpenseAll = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
@@ -827,7 +873,6 @@
             el.textContent = formatCurrency(monthBalance);
             el.className = 'value ' + (monthBalance >= 0 ? 'text-success' : 'text-danger');
 
-            // Calcula PENDENTES (Novo)
             const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-pending').textContent = formatCurrency(pending);
         }
@@ -866,8 +911,6 @@
                 let statusBadge = '';
                 let payBtn = '';
                 
-                // BOTÃO PAGAR: Só aparece se for Despesa, Estiver Pendente, E NÃO for Cartão
-                // (Assumindo que Cartão é pago via Fatura, não item a item)
                 if(!t.paid && isExp && !t.cardId) {
                     statusBadge = `<span style="font-size:0.7rem; background:var(--warning); color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">PENDENTE</span>`;
                     payBtn = `<button class="btn-pay" onclick="markAsPaid('${t.id}')">💰 Pagar</button>`;
@@ -881,6 +924,14 @@
             };
             list.innerHTML = filtered.length ? filtered.map(t => gen(t, true)).join('') : '<div class="empty-state">Nada.</div>';
             recent.innerHTML = state.transactions.slice(0, 5).map(t => gen(t, false)).join('');
+        }
+
+        // Helper para calcular valor da parcela se estiver no range
+        function calculateInstallmentValue(t, range) {
+            if (t.installments && parseInt(t.installments) > 1) {
+                return parseFloat(t.amount) / parseInt(t.installments);
+            }
+            return parseFloat(t.amount);
         }
 
         function getInvoiceRange(card) {
@@ -920,24 +971,36 @@
             c.innerHTML = state.cards.map(card => {
                 const range = getInvoiceRange(card);
                 let spent = 0;
+                let totalBill = 0; // Para exibir no botão
 
                 if (range) {
-                    // CORREÇÃO: REMOVE O CHECK t.paid. CONSUME LIMITE INDEPENDENTE DE PAGAMENTO.
                     spent = state.transactions
                         .filter(t => {
-                            if (t.cardId != card.id || t.type !== 'expense') return false; // Removeu filtro de pago
+                            if (t.cardId != card.id || t.type !== 'expense') return false; 
+                            // Removeu filtro de pago: consome o limite independente
                             const tDate = new Date(t.date);
+                            // Lógica de Parcelamento:
+                            // Se for parcelado, não usamos tDate, mas sim se a "vida" da parcela cruza o range.
+                            // Para simplificar visual do cartão: Vamos assumir que a transação entra na fatura
+                            // do mês da sua data. 
+                            // EX: Compra Set 1x (1x). Fatura Out. Não conta.
+                            // EX: Compra Set 6x. Fatura Out. A 2a parcela (Out) conta.
+                            // Vamos usar a data da transação.
                             tDate.setHours(0,0,0,0);
                             range.startDate.setHours(0,0,0,0);
                             range.endDate.setHours(23,59,59,999);
                             return tDate >= range.startDate && tDate <= range.endDate;
                         })
-                        .reduce((a, b) => a + parseFloat(b.amount), 0);
+                        .reduce((a, t) => {
+                            const val = calculateInstallmentValue(t, range);
+                            totalBill += val;
+                            return a + val;
+                        }, 0);
                 } else {
                     const now = new Date();
                     const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                    // CORREÇÃO: Removeu filtro de pago aqui também
-                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + calculateInstallmentValue(b, null), 0);
+                    totalBill = spent;
                 }
 
                 const pct = Math.min((spent / card.limit) * 100, 100);
@@ -945,6 +1008,12 @@
                 const closeTxt = card.closeDate ? `Fecha dia: ${card.closeDate}` : '';
                 const dueTxt = card.dueDate ? `Vence dia: ${card.dueDate}` : '';
                 const dateInfo = (closeTxt || dueTxt) ? `<div style="font-size: 0.7rem; margin-top:5px; opacity:0.8;">${closeTxt} ${dueTxt}</div>` : '';
+
+                // Botão Pagar Fatura
+                let payBillBtn = '';
+                if(card.closeDate) {
+                    payBillBtn = `<button class="btn btn-bill" onclick="payBill('${card.id}')">Pagar Fatura Atual (${formatCurrency(totalBill, false)})</button>`;
+                }
 
                 return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
                     <div class="flex-between" style="margin:0; color:white;">
@@ -963,6 +1032,7 @@
                         </div>
                         <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div>
                     </div>
+                    ${payBillBtn}
                 </div>`;
             }).join('');
         }
@@ -1015,8 +1085,9 @@
             data.forEach((d, i) => {
                 const hI = (d.inc/max)*chartH, hE = (d.exp/max)*chartH;
                 const yI = h - 20 - hI, yE = h - 20 - hE;
-                svg += `<rect x="${currentX}" y="${yI}" width="${barW}" height="${hI}" fill="#48bb78" rx="2"><title>Ent: ${formatCurrency(d.inc)}</title></rect>`;
-                svg += `<rect x="${currentX + barW}" y="${yE}" width="${barW}" height="${hE}" fill="#f56565" rx="2"><title>Sai: ${formatCurrency(d.exp)}</title></rect>`;
+                // Interatividade: Title tag com valor detalhado
+                svg += `<rect x="${currentX}" y="${yI}" width="${barW}" height="${hI}" fill="#48bb78" rx="2"><title>Entradas: ${formatCurrency(d.inc)}</title></rect>`;
+                svg += `<rect x="${currentX + barW}" y="${yE}" width="${barW}" height="${hE}" fill="#f56565" rx="2"><title>Saídas: ${formatCurrency(d.exp)}</title></rect>`;
                 const textColor = d.isFuture ? 'var(--text-secondary)' : 'var(--text-primary)';
                 svg += `<text x="${currentX + barW}" y="${h-5}" font-size="10" text-anchor="middle" fill="${textColor}">${d.label}</text>`;
                 currentX += (barW * 2) + gap;
@@ -1130,7 +1201,6 @@
         });
 
         window.exportPDF = function() {
-            // Solução: Construir HTML puro com inline styles
             const income = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
             const expense = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
             const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
@@ -1184,7 +1254,6 @@
                 </div>
             `;
 
-            // Cria elemento temporário invisível
             const tempDiv = document.createElement('div');
             tempDiv.style.position = 'fixed';
             tempDiv.style.top = '0';
@@ -1192,7 +1261,7 @@
             tempDiv.style.zIndex = '-1000';
             tempDiv.style.opacity = '0';
             tempDiv.style.pointerEvents = 'none';
-            tempDiv.style.width = '210mm'; // Largura A4 segura
+            tempDiv.style.width = '210mm';
             tempDiv.innerHTML = htmlContent;
             document.body.appendChild(tempDiv);
 
