@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Finanças Família</title>
     
-    <!-- PWA CONFIG -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -30,7 +29,6 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* LAYOUT PRINCIPAL - Garante altura total */
         body { 
             font-family: var(--font-family); 
             background-color: var(--bg-body); 
@@ -42,13 +40,12 @@
             transition: background 0.3s, color 0.3s; 
         }
 
-        /* SIDEBAR - Escondido por padrão, exibido via JS/CSS */
         .sidebar { 
             width: 260px; 
             background: var(--bg-card); 
             border-right: 1px solid var(--border); 
             padding: 2rem 1.5rem; 
-            display: none; /* Começa escondido */
+            display: none; 
             flex-direction: column; 
             justify-content: space-between; 
             transition: transform 0.3s ease, background 0.3s; 
@@ -57,19 +54,15 @@
             overflow-y: auto; 
         }
         
-        /* Quando não estiver escondido (Desktop), ele entra no fluxo flex */
-        .sidebar:not(.hidden) {
-            display: flex;
-        }
+        .sidebar:not(.hidden) { display: flex; }
 
-        /* MAIN CONTENT - Ocupa o resto do espaço */
         .main-content { 
             flex: 1; 
             overflow-y: auto; 
             padding: 2rem; 
             position: relative; 
             scroll-behavior: smooth; 
-            width: 100%; /* Garante largura total */
+            width: 100%; 
             background-color: var(--bg-body);
         }
 
@@ -94,7 +87,7 @@
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card h3 { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-card .value { font-size: 1.5rem; font-weight: 700; }
-        .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); }
+        .text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-primary { color: var(--primary); } .text-warning { color: var(--warning); }
 
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
         .list-item.pending { opacity: 0.6; border-left: 4px solid var(--warning); }
@@ -143,36 +136,19 @@
 
         .mobile-menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 200; background: var(--bg-card); border-radius: 50%; width: 40px; height: 40px; box-shadow: var(--shadow); border: 1px solid var(--border); font-size: 1.2rem; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
 
-        /* PDF Container - Escondido por padrão */
         #pdf-container { display: none; }
-        .pdf-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #5a67d8; padding-bottom: 10px; }
-        .pdf-section { margin-bottom: 30px; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .pdf-table th { background-color: #f8f9fa; color: #333; }
 
-        /* MOBILE FIX - Sidebar Vira Overlay Fixo */
         @media (max-width: 768px) {
-            .sidebar { 
-                position: fixed; 
-                left: -100%; /* Fora da tela */
-                top: 0; 
-                bottom: 0; 
-                width: 80%; 
-                max-width: 300px;
-                box-shadow: 2px 0 10px rgba(0,0,0,0.2);
-                display: flex !important; /* Força display flex para animação, mas posição controla visibilidade */
-                transform: translateX(0); /* Reset transform, usaremos left */
-            }
+            .sidebar { position: fixed; left: -100%; top: 0; bottom: 0; width: 80%; max-width: 300px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); display: flex !important; transform: translateX(0); }
             .sidebar.open { left: 0; }
             .mobile-menu-btn { display: flex; }
             .main-content { padding: 5rem 1rem 5rem 1rem; width: 100%; }
             .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-card:nth-child(1), .stat-card:nth-child(4) { grid-column: span 2; }
+            .stat-card:nth-child(1), .stat-card:nth-child(4), .stat-card:nth-child(5) { grid-column: span 2; }
         }
         @media (max-width: 480px) {
             .summary-grid { grid-template-columns: 1fr; }
-            .stat-card:nth-child(1), .stat-card:nth-child(4) { grid-column: span 1; }
+            .stat-card:nth-child(1), .stat-card:nth-child(4), .stat-card:nth-child(5) { grid-column: span 1; }
         }
     </style>
 </head>
@@ -183,9 +159,7 @@
         <p style="margin-top: 1rem; color: var(--text-secondary);">Carregando...</p>
     </div>
 
-    <!-- Container Invisível para PDF -->
     <div id="pdf-container"></div>
-    
     <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
 
     <!-- TELA DE LOGIN -->
@@ -295,6 +269,11 @@
                 <div class="card stat-card">
                     <h3>Saídas (Mês)</h3>
                     <div class="value text-danger" id="total-expense">R$ 0,00</div>
+                </div>
+                <!-- NOVO: CONTAS PENDENTES -->
+                <div class="card stat-card">
+                    <h3>Contas Pendentes</h3>
+                    <div class="value text-warning" id="total-pending">R$ 0,00</div>
                 </div>
                 <div class="card stat-card" style="opacity: 0.8;">
                     <h3>Saldo Total (Acumulado)</h3>
@@ -833,7 +812,7 @@
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
-            // Calcula APENAS pagos
+            // Calcula PAGOS para Balanço
             const totalIncomeAll = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             const totalExpenseAll = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
@@ -847,6 +826,10 @@
             const el = document.getElementById('month-balance');
             el.textContent = formatCurrency(monthBalance);
             el.className = 'value ' + (monthBalance >= 0 ? 'text-success' : 'text-danger');
+
+            // Calcula PENDENTES (Novo)
+            const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a, b) => a + parseFloat(b.amount), 0);
+            document.getElementById('total-pending').textContent = formatCurrency(pending);
         }
 
         function renderPayments() {
@@ -883,8 +866,9 @@
                 let statusBadge = '';
                 let payBtn = '';
                 
-                // Botão pagar SÓ para despesas pendentes
-                if(!t.paid && isExp) {
+                // BOTÃO PAGAR: Só aparece se for Despesa, Estiver Pendente, E NÃO for Cartão
+                // (Assumindo que Cartão é pago via Fatura, não item a item)
+                if(!t.paid && isExp && !t.cardId) {
                     statusBadge = `<span style="font-size:0.7rem; background:var(--warning); color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">PENDENTE</span>`;
                     payBtn = `<button class="btn-pay" onclick="markAsPaid('${t.id}')">💰 Pagar</button>`;
                 }
@@ -938,9 +922,10 @@
                 let spent = 0;
 
                 if (range) {
+                    // CORREÇÃO: REMOVE O CHECK t.paid. CONSUME LIMITE INDEPENDENTE DE PAGAMENTO.
                     spent = state.transactions
                         .filter(t => {
-                            if (t.cardId != card.id || t.type !== 'expense' || !t.paid) return false;
+                            if (t.cardId != card.id || t.type !== 'expense') return false; // Removeu filtro de pago
                             const tDate = new Date(t.date);
                             tDate.setHours(0,0,0,0);
                             range.startDate.setHours(0,0,0,0);
@@ -951,7 +936,8 @@
                 } else {
                     const now = new Date();
                     const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.paid && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+                    // CORREÇÃO: Removeu filtro de pago aqui também
+                    spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
                 }
 
                 const pct = Math.min((spent / card.limit) * 100, 100);
@@ -1014,7 +1000,6 @@
                 months.push({ key: k, label, isFuture: offset > 0 });
             }
             const data = months.map(m => {
-                // Gráfico mostra apenas PAGOS
                 const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key) && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
                 const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key) && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
                 return { ...m, inc, exp };
@@ -1145,7 +1130,61 @@
         });
 
         window.exportPDF = function() {
-            // Cria um elemento temporário invisível mas renderizável
+            // Solução: Construir HTML puro com inline styles
+            const income = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
+            const expense = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
+            const pending = state.transactions.filter(t => t.type === 'expense' && !t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
+
+            const htmlContent = `
+                <div style="font-family: Helvetica, Arial, sans-serif; color: #333; padding: 20px;">
+                    <h1 style="text-align: center; color: #5a67d8; margin-bottom: 10px;">Relatório Família</h1>
+                    <p style="text-align: center; color: #666; margin-bottom: 30px;">${new Date().toLocaleString('pt-BR')}</p>
+                    
+                    <div style="display: flex; justify-content: space-around; margin-bottom: 30px; text-align: center;">
+                        <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; width: 30%;">
+                            <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Saldo</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #5a67d8;">${formatCurrency(income-expense, false)}</div>
+                        </div>
+                        <div style="background: #f0fff4; padding: 15px; border-radius: 8px; width: 30%;">
+                            <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Entradas</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #48bb78;">${formatCurrency(income, false)}</div>
+                        </div>
+                        <div style="background: #fff5f5; padding: 15px; border-radius: 8px; width: 30%;">
+                            <div style="font-size: 12px; color: #718096; text-transform: uppercase;">Saídas</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #f56565;">${formatCurrency(expense, false)}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: #fffbe6; border: 1px solid #fbd38d; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: #d69e2e;">Contas Pendentes (Não pagas):</span>
+                        <span style="font-size: 18px; font-weight: bold; color: #d69e2e;">${formatCurrency(pending, false)}</span>
+                    </div>
+
+                    <h3 style="border-bottom: 2px solid #5a67d8; padding-bottom: 10px; margin-bottom: 15px;">Transações Pagas</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Data</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Descrição</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.transactions.filter(t=>t.paid).map(t => `
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(t.date)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${t.desc}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: ${t.type==='income'?'green':'red'};">
+                                        ${t.type==='income'?'+':'-'} ${formatCurrency(t.amount, false)}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // Cria elemento temporário invisível
             const tempDiv = document.createElement('div');
             tempDiv.style.position = 'fixed';
             tempDiv.style.top = '0';
@@ -1153,37 +1192,11 @@
             tempDiv.style.zIndex = '-1000';
             tempDiv.style.opacity = '0';
             tempDiv.style.pointerEvents = 'none';
-            tempDiv.style.width = '800px';
-            tempDiv.style.background = 'white';
-            tempDiv.style.color = '#333';
-            tempDiv.style.padding = '40px';
-            tempDiv.style.fontFamily = 'Helvetica, Arial, sans-serif';
-
-            const chartSvg = document.getElementById('monthly-chart-container').innerHTML;
-            const income = state.transactions.filter(t => t.type === 'income' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
-            const expense = state.transactions.filter(t => t.type === 'expense' && t.paid).reduce((a,b)=>a+parseFloat(b.amount),0);
-            
-            let html = `<div class="pdf-header"><h1>Relatório Família</h1><p>${new Date().toLocaleString('pt-BR')}</p></div>
-            <div class="pdf-section">
-                <h3>Resumo</h3>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-                    <div style="background:#f0f4f8; padding:10px;"><small>Saldo</small><br><strong style="color:#5a67d8">${formatCurrency(income-expense)}</strong></div>
-                    <div style="background:#f0fff4; padding:10px;"><small>Entradas</small><br><strong style="color:#48bb78">${formatCurrency(income)}</strong></div>
-                    <div style="background:#fff5f5; padding:10px;"><small>Saídas</small><br><strong style="color:#f56565">${formatCurrency(expense)}</strong></div>
-                </div>
-            </div>
-            <div class="pdf-section"><h3>Projeção</h3><div style="border:1px solid #eee; padding:10px; height:200px; display:flex; align-items:center; justify-content:center;">${chartSvg}</div></div>
-            <div class="pdf-section">
-                <h3>Transações Pagas</h3>
-                <table class="pdf-table"><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>
-                ${state.transactions.filter(t=>t.paid).map(t => `<tr><td>${formatDate(t.date)}</td><td>${t.desc}</td><td style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'} ${formatCurrency(t.amount, false)}</td></tr>`).join('')}
-                </tbody></table>
-            </div>`;
-            
-            tempDiv.innerHTML = html;
+            tempDiv.style.width = '210mm'; // Largura A4 segura
+            tempDiv.innerHTML = htmlContent;
             document.body.appendChild(tempDiv);
-            
-            const opt = { margin: 0.5, filename: `Financas_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+
+            const opt = { margin: 10, filename: `Financas_${new Date().toISOString().split('T')[0]}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
             
             html2pdf().set(opt).from(tempDiv).save().then(() => { 
                 document.body.removeChild(tempDiv);
