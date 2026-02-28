@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#5a67d8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Finanças Família</title>
@@ -29,10 +29,21 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.5; height: 100vh; display: flex; overflow: hidden; transition: background 0.3s, color 0.3s; }
+        
+        /* CORREÇÃO SCROLL MOBILE */
+        body { 
+            font-family: var(--font-family); 
+            background-color: var(--bg-body); 
+            color: var(--text-primary); 
+            line-height: 1.5; 
+            height: 100vh; 
+            display: flex; 
+            overflow: hidden; /* Impede scroll duplo no body */
+            transition: background 0.3s, color 0.3s; 
+        }
 
         .sidebar { width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.3s ease, background 0.3s; z-index: 100; }
-        .main-content { flex: 1; overflow-y: auto; padding: 2rem; position: relative; scroll-behavior: smooth; }
+        .main-content { flex: 1; overflow-y: auto; padding: 2rem; position: relative; scroll-behavior: smooth; height: 100%; }
 
         .brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -103,11 +114,23 @@
         .pdf-table th { background-color: #f8f9fa; color: #333; }
 
         @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; min-height: 100vh; }
+            /* CORREÇÃO SCROLL MOBILE: Usa 100dvh e remove restrições rígidas */
+            body { 
+                flex-direction: column; 
+                height: 100dvh; /* Dynamic Viewport Height */
+                min-height: 100vh; 
+                overflow: hidden; 
+            }
             .sidebar { position: fixed; height: 100%; left: -260px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
             .sidebar.open { transform: translateX(260px); left: -260px; }
             .mobile-menu-btn { display: flex; }
-            .main-content { padding: 5rem 1rem 1rem 1rem; }
+            .main-content { 
+                padding: 5rem 1rem 1rem 1rem; 
+                height: 100%; 
+                /* Garante scroll suave dentro do container principal */
+                overflow-y: scroll; 
+                -webkit-overflow-scrolling: touch; 
+            }
             .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .stat-card:nth-child(1), .stat-card:nth-child(4) { grid-column: span 2; }
         }
@@ -482,8 +505,6 @@
                 showToast('Erro ao sair: ' + e.message, 'error'); 
             }
         };
-
-        // Alias para garantir que o botão de texto funcione também
         window.leaveGroup = window.leaveFamily;
 
         window.copyGroupId = function() {
@@ -569,12 +590,29 @@
                 addLog('edit', `Editou: ${tData.desc}`);
                 showToast('Atualizado!', 'success');
             } else {
-                await addDoc(collection(db, 'groups', state.currentGroupId, 'transactions'), {
-                    ...tData,
-                    timestamp: serverTimestamp()
-                });
-                addLog('add', `Adicionou: ${tData.desc}`);
+                // ATUALIZAÇÃO OTIMISTA (Aparece na hora)
+                const tempId = 'temp_' + Date.now();
+                const optimisticTx = { id: tempId, ...tData };
+                
+                // Adiciona localmente
+                state.transactions.unshift(optimisticTx);
+                updateUI();
                 showToast('Salvo!', 'success');
+
+                try {
+                    await addDoc(collection(db, 'groups', state.currentGroupId, 'transactions'), {
+                        ...tData,
+                        timestamp: serverTimestamp()
+                    });
+                    addLog('add', `Adicionou: ${tData.desc}`);
+                    // O listener do Firebase vai substituir o item temporário pelo real
+                } catch (e) {
+                    // Se der erro, remove o item temporário
+                    state.transactions = state.transactions.filter(t => t.id !== tempId);
+                    updateUI();
+                    showToast('Erro ao salvar.', 'error');
+                    throw e;
+                }
             }
         };
 
@@ -683,16 +721,12 @@
         function renderSummary() {
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            
-            // CORREÇÃO AQUI: t.amount -> b.amount
             const totalIncomeAll = state.transactions.filter(t => t.type === 'income').reduce((a, b) => a + parseFloat(b.amount), 0);
             const totalExpenseAll = state.transactions.filter(t => t.type === 'expense').reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
 
-            // CORREÇÃO AQUI: t.amount -> b.amount
             const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
             const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
-            
             document.getElementById('total-income').textContent = formatCurrency(income);
             document.getElementById('total-expense').textContent = formatCurrency(expense);
 
@@ -727,7 +761,6 @@
             const c = document.getElementById('cards-container');
             if(!state.cards.length) { c.innerHTML = '<div class="empty-state">Sem cartões.</div>'; return; }
             c.innerHTML = state.cards.map(card => {
-                // CORREÇÃO AQUI: t.amount -> b.amount
                 const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((a, b) => a + parseFloat(b.amount), 0);
                 const pct = Math.min((spent / card.limit) * 100, 100);
                 return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
@@ -781,7 +814,6 @@
                 months.push({ key: k, label, isFuture: offset > 0 });
             }
             const data = months.map(m => {
-                // CORREÇÃO AQUI: t.amount -> b.amount (2x)
                 const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(b.amount),0);
                 const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(b.amount),0);
                 return { ...m, inc, exp };
@@ -895,7 +927,6 @@
         window.exportPDF = function() {
             const container = document.getElementById('pdf-container');
             const chartSvg = document.getElementById('monthly-chart-container').innerHTML;
-            // CORREÇÃO AQUI: t.amount -> b.amount (2x)
             const income = state.transactions.filter(t => t.type === 'income').reduce((a,b)=>a+parseFloat(b.amount),0);
             const expense = state.transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+parseFloat(b.amount),0);
             
