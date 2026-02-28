@@ -483,6 +483,9 @@
             }
         };
 
+        // Alias para garantir que o botão de texto funcione também
+        window.leaveGroup = window.leaveFamily;
+
         window.copyGroupId = function() {
             const id = document.getElementById('display-group-id').textContent;
             navigator.clipboard.writeText(id).then(() => showToast('ID copiado!', 'success'));
@@ -680,12 +683,16 @@
         function renderSummary() {
             const now = new Date();
             const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const totalIncomeAll = state.transactions.filter(t => t.type === 'income').reduce((a, b) => a + parseFloat(t.amount), 0);
-            const totalExpenseAll = state.transactions.filter(t => t.type === 'expense').reduce((a, b) => a + parseFloat(t.amount), 0);
+            
+            // CORREÇÃO AQUI: t.amount -> b.amount
+            const totalIncomeAll = state.transactions.filter(t => t.type === 'income').reduce((a, b) => a + parseFloat(b.amount), 0);
+            const totalExpenseAll = state.transactions.filter(t => t.type === 'expense').reduce((a, b) => a + parseFloat(b.amount), 0);
             document.getElementById('total-balance').textContent = formatCurrency(totalIncomeAll - totalExpenseAll);
 
-            const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(t.amount), 0);
-            const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(t.amount), 0);
+            // CORREÇÃO AQUI: t.amount -> b.amount
+            const income = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+            const expense = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthKey)).reduce((a, b) => a + parseFloat(b.amount), 0);
+            
             document.getElementById('total-income').textContent = formatCurrency(income);
             document.getElementById('total-expense').textContent = formatCurrency(expense);
 
@@ -720,7 +727,8 @@
             const c = document.getElementById('cards-container');
             if(!state.cards.length) { c.innerHTML = '<div class="empty-state">Sem cartões.</div>'; return; }
             c.innerHTML = state.cards.map(card => {
-                const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((a, b) => a + parseFloat(t.amount), 0);
+                // CORREÇÃO AQUI: t.amount -> b.amount
+                const spent = state.transactions.filter(t => t.cardId == card.id && t.type === 'expense').reduce((a, b) => a + parseFloat(b.amount), 0);
                 const pct = Math.min((spent / card.limit) * 100, 100);
                 return `<div class="credit-card-ui" style="background: linear-gradient(135deg, ${card.color} 0%, #2d3748 100%);">
                     <div class="flex-between" style="margin:0; color:white;">
@@ -773,8 +781,9 @@
                 months.push({ key: k, label, isFuture: offset > 0 });
             }
             const data = months.map(m => {
-                const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(t.amount),0);
-                const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(t.amount),0);
+                // CORREÇÃO AQUI: t.amount -> b.amount (2x)
+                const inc = state.transactions.filter(t => t.type === 'income' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(b.amount),0);
+                const exp = state.transactions.filter(t => t.type === 'expense' && t.date.startsWith(m.key)).reduce((a,b)=>a+parseFloat(b.amount),0);
                 return { ...m, inc, exp };
             });
             const max = Math.max(...data.map(d=>Math.max(d.inc,d.exp))) || 100;
@@ -886,8 +895,9 @@
         window.exportPDF = function() {
             const container = document.getElementById('pdf-container');
             const chartSvg = document.getElementById('monthly-chart-container').innerHTML;
-            const income = state.transactions.filter(t => t.type === 'income').reduce((a,b)=>a+parseFloat(t.amount),0);
-            const expense = state.transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+parseFloat(t.amount),0);
+            // CORREÇÃO AQUI: t.amount -> b.amount (2x)
+            const income = state.transactions.filter(t => t.type === 'income').reduce((a,b)=>a+parseFloat(b.amount),0);
+            const expense = state.transactions.filter(t => t.type === 'expense').reduce((a,b)=>a+parseFloat(b.amount),0);
             
             let html = `<div class="pdf-header"><h1>Relatório Família</h1><p>${new Date().toLocaleString('pt-BR')}</p></div>
             <div class="pdf-section">
